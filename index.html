@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Auditoría de Aduana - DrillDown</title>
+    <!-- Librerías Externas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS para manejo de Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom scrollbar for dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-white p-6 min-h-screen">
+    <div class="max-w-7xl mx-auto">
+
+        <!-- HEADER & TOOLBAR -->
+        <header
+            class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 border-b border-slate-800 pb-6 gap-6">
+            <div>
+                <h1
+                    class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 uppercase tracking-tighter">
+                    PANEL DE ADUANAS
+                </h1>
+                <p class="text-slate-400 text-sm mt-1 font-medium tracking-wide">Inteligencia de Negocios y Control de
+                    Riesgo</p>
+            </div>
+
+            <div
+                class="flex flex-wrap gap-3 items-center bg-slate-900 p-2 rounded-xl border border-slate-800 shadow-2xl">
+                <!-- File Upload -->
+                <div class="relative group">
+                    <button onclick="document.getElementById('fileInput').click()"
+                        class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        Cargar Excel
+                    </button>
+                    <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" class="hidden"
+                        onchange="handleFileUpload(this)">
+                    <!-- Tooltip -->
+                    <div
+                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-xs rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap border border-slate-700">
+                        Arrastra o selecciona archivo</div>
+                </div>
+
+                <div class="h-8 w-px bg-slate-700 mx-1"></div>
+
+                <!-- Date Filters -->
+                <div class="flex items-center gap-2">
+                    <div class="relative">
+                        <label
+                            class="absolute -top-2 left-2 bg-slate-900 px-1 text-[10px] text-blue-400 font-bold uppercase">Desde</label>
+                        <input type="date" id="dateStart" onchange="applyFilters()"
+                            class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition w-32">
+                    </div>
+                    <div class="relative">
+                        <label
+                            class="absolute -top-2 left-2 bg-slate-900 px-1 text-[10px] text-blue-400 font-bold uppercase">Hasta</label>
+                        <input type="date" id="dateEnd" onchange="applyFilters()"
+                            class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition w-32">
+                    </div>
+                </div>
+
+                <div class="h-8 w-px bg-slate-700 mx-1"></div>
+
+                <!-- Actions -->
+                <button onclick="exportToCSV()"
+                    class="bg-slate-800 hover:bg-slate-700 text-green-400 hover:text-green-300 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 border border-slate-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    CSV
+                </button>
+
+                <button onclick="resetFilters()"
+                    class="bg-slate-800 hover:bg-red-900/30 text-slate-400 hover:text-red-400 px-3 py-2.5 rounded-lg transition-all border border-slate-700"
+                    title="Restablecer Todo">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- SEARCH BAR -->
+        <div class="mb-8 relative group">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-slate-500 group-focus-within:text-blue-500 transition-colors"
+                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                        clip-rule="evenodd" />
+                </svg>
+            </div>
+            <input type="text" id="searchInput" onkeyup="applyFilters()"
+                class="block w-full bg-slate-900 border border-slate-800 rounded-xl py-4 pl-12 pr-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-lg text-sm font-medium"
+                placeholder="Buscador Inteligente: Escribe nombre de cliente, chofer, referencia o estatus (ej: 'TIENDITAS', 'ROJO')...">
+        </div>
+
+        <!-- DASHBOARD GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+
+            <!-- LEFT: CHART (8 cols) -->
+            <div class="lg:col-span-8 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Volumen por Cliente</h3>
+                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded border border-slate-700">Top
+                        10 Activos</span>
+                </div>
+                <div class="flex-grow relative h-64 w-full">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+
+            <!-- RIGHT: KPIs (4 cols) -->
+            <div class="lg:col-span-4 flex flex-col gap-4">
+                <!-- KPI 1 -->
+                <div
+                    class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden group">
+                    <div
+                        class="absolute -right-6 -top-6 rounded-full w-24 h-24 bg-blue-500/10 group-hover:bg-blue-500/20 transition-all blur-xl">
+                    </div>
+                    <p class="text-xs text-blue-400 font-bold uppercase tracking-widest mb-1">Total Movimientos</p>
+                    <div class="flex items-end gap-2">
+                        <h2 id="kpiTotal" class="text-5xl font-black text-white tracking-tighter">-</h2>
+                        <span class="text-xs text-slate-500 mb-2 font-medium">viajes</span>
+                    </div>
+                </div>
+
+                <!-- KPI 2 -->
+                <div
+                    class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden group">
+                    <div
+                        class="absolute -right-6 -top-6 rounded-full w-24 h-24 bg-red-500/10 group-hover:bg-red-500/20 transition-all blur-xl">
+                    </div>
+                    <p class="text-xs text-red-400 font-bold uppercase tracking-widest mb-1">Revisiones Antidroga</p>
+                    <div class="flex items-end gap-2">
+                        <h2 id="kpiReviews" class="text-5xl font-black text-white tracking-tighter">-</h2>
+                        <span class="text-xs text-slate-500 mb-2 font-medium">alertas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATA TABLE -->
+        <div
+            class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col h-[500px]">
+            <div
+                class="p-4 bg-slate-950/50 border-b border-slate-800 flex justify-between items-center backdrop-blur-sm">
+                <h3 class="font-bold uppercase text-xs tracking-widest text-slate-400 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    Detalle de Operaciones
+                </h3>
+                <span id="recordCount"
+                    class="text-[10px] font-mono text-slate-600 bg-slate-900 px-2 py-1 rounded border border-slate-800">Mostrando
+                    0 registros</span>
+            </div>
+
+            <div class="overflow-auto flex-grow scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900 p-0">
+                <table class="w-full text-left border-collapse">
+                    <thead
+                        class="bg-slate-900 text-slate-500 uppercase text-[10px] font-bold tracking-wider sticky top-0 z-10 shadow-md">
+                        <tr>
+                            <th class="p-4 border-b border-slate-800">Cliente</th>
+                            <th class="p-4 border-b border-slate-800">Fecha</th>
+                            <th class="p-4 border-b border-slate-800">Referencia</th>
+                            <th class="p-4 border-b border-slate-800">Chofer</th>
+                            <th class="p-4 border-b border-slate-800 text-center">Control</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-800/50 text-sm">
+                        <!-- Rows injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast"
+        class="fixed bottom-8 right-8 bg-blue-600 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-500 font-bold z-50 flex items-center gap-3 border border-blue-400/30">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span id="toastMsg">Notificación</span>
+    </div>
+
+    <script>
+        let rawData = [];
+        let filteredData = [];
+        let myChart = null;
+
+        // --- SISTEMA DE GESTIÓN DE ESTADO ---
+        async function init() {
+            try {
+                // Intentar cargar datos json pre-procesados si existen
+                const res = await fetch('datos_finales.json');
+                if (res.ok) {
+                    const json = await res.json();
+                    loadDataIntoSystem(json);
+                    showToast("✅ Datos cargados del servidor local");
+                }
+            } catch (e) {
+                console.log("Modo sin conexión o sin datos precargados.");
+            }
+        }
+
+        function loadDataIntoSystem(data) {
+            // Normalizar datos
+            rawData = data.map(d => {
+                // Intentar parsear fecha para ordenamiento y filtrado
+                let dateObj = null;
+
+                // Caso 1: Viene de Excel (numero dias desde 1900)
+                if (typeof d.FECHA === 'number') {
+                    dateObj = new Date(Math.round((d.FECHA - 25569) * 86400 * 1000));
+                    dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
+                    d.FECHA = dateObj.toLocaleDateString('es-ES');
+                }
+                // Caso 2: String DD/MM/YYYY (común en latam)
+                else if (typeof d.FECHA === 'string' && d.FECHA.includes('/')) {
+                    const parts = d.FECHA.split('/'); // dia/mes/año
+                    // Asumir DD/MM/YYYY
+                    if (parts.length === 3) dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+                // Caso 3: String ISO o standard
+                else {
+                    dateObj = new Date(d.FECHA);
+                }
+
+                return {
+                    ...d,
+                    _dateObj: (dateObj && !isNaN(dateObj)) ? dateObj : null,
+                    _searchStr: Object.values(d).join(' ').toLowerCase()
+                };
+            });
+
+            // Establecer rangos iniciales de fecha en los inputs
+            const validDates = rawData.map(d => d._dateObj).filter(d => d);
+            if (validDates.length > 0) {
+                const min = new Date(Math.min(...validDates));
+                const max = new Date(Math.max(...validDates));
+                document.getElementById('dateStart').value = min.toISOString().split('T')[0];
+                document.getElementById('dateEnd').value = max.toISOString().split('T')[0];
+            }
+
+            applyFilters();
+        }
+
+        // --- MANEJO DE ARCHIVOS EXCEL ---
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+
+                // Convertir a JSON
+                const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+                // Adaptar columnas variadas a nuestro estandar
+                // Buscamos columnas clave auque tengan nombres ligeramente distintos
+                const standardized = json.map(row => {
+                    const keys = Object.keys(row);
+                    const findKey = (search) => keys.find(k => k.toUpperCase().includes(search));
+
+                    return {
+                        CLIENTE: row[findKey('CLIENTE')] || row[findKey('IMPORTADOR')] || 'DESCONOCIDO',
+                        FECHA: row[findKey('FECHA')] || '',
+                        REFERENCIA: row[findKey('REFER')] || row[findKey('REF')] || '',
+                        CHOFER: row[findKey('CHOFER')] || row[findKey('CONDUCTOR')] || '',
+                        ANTIDROGA: row[findKey('DROGA')] || row[findKey('ANTID')] || '',
+                        ADUANA: row[findKey('ADUANA')] || ''
+                    };
+                }).filter(d =>
+                    // Filtros de limpieza básicos (remover filas vacías o totales)
+                    d.CLIENTE !== 'DESCONOCIDO' && d.ADUANA.toUpperCase().includes('TIENDITAS')
+                );
+
+                loadDataIntoSystem(standardized);
+                showToast(`📂 Archivo procesado: ${standardized.length} registros válidos`);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // --- FILTRADO ---
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const startStr = document.getElementById('dateStart').value;
+            const endStr = document.getElementById('dateEnd').value;
+
+            const start = startStr ? new Date(startStr) : null;
+            const end = endStr ? new Date(endStr) : null;
+            if (end) end.setHours(23, 59, 59);
+
+            filteredData = rawData.filter(d => {
+                // 1. Buscador
+                if (search && !d._searchStr.includes(search)) return false;
+
+                // 2. Fechas
+                if (d._dateObj) {
+                    if (start && d._dateObj < start) return false;
+                    if (end && d._dateObj > end) return false;
+                }
+
+                return true;
+            });
+
+            updateVisuals();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            // Reset dates to full range
+            const validDates = rawData.map(d => d._dateObj).filter(d => d);
+            if (validDates.length > 0) {
+                const min = new Date(Math.min(...validDates));
+                const max = new Date(Math.max(...validDates));
+                document.getElementById('dateStart').value = min.toISOString().split('T')[0];
+                document.getElementById('dateEnd').value = max.toISOString().split('T')[0];
+            }
+            applyFilters();
+            showToast("✨ Filtros limpiados");
+        }
+
+        // --- RENDERIZADO ---
+        function updateVisuals() {
+            // 1. KPI
+            document.getElementById('kpiTotal').innerText = filteredData.length;
+            const reviews = filteredData.filter(d => String(d.ANTIDROGA).toUpperCase().includes('SI')).length;
+            document.getElementById('kpiReviews').innerText = reviews;
+            document.getElementById('recordCount').innerText = `Mostrando ${filteredData.length} registros`;
+
+            // 2. Tabla (Virtualizada simple: solo renderizo los primeros 100 para velocidad)
+            const tbody = document.getElementById('tableBody');
+            const subset = filteredData.slice(0, 100);
+
+            if (subset.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500">No se encontraron datos coincidenes</td></tr>`;
+            } else {
+                tbody.innerHTML = subset.map(d => {
+                    const isReview = String(d.ANTIDROGA).toUpperCase().includes('SI');
+                    return `
+                    <tr class="hover:bg-slate-800 transition group border-b border-slate-800/50">
+                        <td class="p-4 font-bold text-blue-400 group-hover:text-blue-300">${d.CLIENTE}</td>
+                        <td class="p-4 text-slate-400 font-mono text-xs">${d.FECHA}</td>
+                        <td class="p-4 text-slate-300 font-mono text-xs tracking-wider">${d.REFERENCIA}</td>
+                        <td class="p-4 text-slate-400 text-xs uppercase">${d.CHOFER || '-'}</td>
+                        <td class="p-4 text-center">
+                            ${isReview
+                            ? `<span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-red-500/10 text-red-500 border border-red-500/20 text-[10px] font-bold uppercase">REVISADO</span>`
+                            : `<span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-green-500/10 text-green-500 border border-green-500/20 text-[10px] font-bold uppercase">LIBRE</span>`
+                        }
+                        </td>
+                    </tr>
+                `}).join('');
+            }
+
+            // 3. Gráfico
+            updateChart();
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+
+            // Agrupar
+            const counts = {};
+            filteredData.forEach(d => { counts[d.CLIENTE] = (counts[d.CLIENTE] || 0) + 1; });
+
+            // Top 10
+            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(x => x[0]),
+                    datasets: [{
+                        label: 'Trámites',
+                        data: sorted.map(x => x[1]),
+                        backgroundColor: '#3b82f6',
+                        hoverBackgroundColor: '#60a5fa',
+                        borderRadius: 4,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#1e293b' }, ticks: { color: '#64748b' } },
+                        y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10, weight: 'bold' } } }
+                    },
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const idx = elements[0].index;
+                            const client = myChart.data.labels[idx];
+                            document.getElementById('searchInput').value = client;
+                            applyFilters();
+                            showToast(`🔍 Filtrado por: ${client}`);
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- EXPORTACIÓN ---
+        function exportToCSV() {
+            if (filteredData.length === 0) return showToast("⚠️ No hay datos para exportar");
+
+            // Mapeo limpio
+            const cleanData = filteredData.map(d => ({
+                CLIENTE: d.CLIENTE,
+                FECHA: d.FECHA,
+                REFERENCIA: d.REFERENCIA,
+                CHOFER: d.CHOFER,
+                ESTATUS: d.ANTIDROGA
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(cleanData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Reporte_Aduana");
+            XLSX.writeFile(wb, "Reporte_Auditoria_Aduana.csv");
+        }
+
+        // Toast Helper
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            document.getElementById('toastMsg').innerHTML = msg;
+            el.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => el.classList.add('translate-y-24', 'opacity-0'), 3000);
+        }
+
+        // Auto-run
+        init();
+
+        // Drag & Drop
+        document.body.addEventListener('dragover', e => { e.preventDefault(); });
+        document.body.addEventListener('drop', e => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length) {
+                handleFileUpload({ files: e.dataTransfer.files });
+            }
+        });
+    </script>
+</body>
+
+</html>

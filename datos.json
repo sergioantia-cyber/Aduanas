@@ -1,0 +1,7 @@
+[
+  {"Fecha":"2024-01-01","Producto":"Laptop","Categoría":"Hardware","Cantidad":5,"Precio_Unitario":1000,"Total_Venta":5000,"Región":"Norte"},
+  {"Fecha":"2024-01-02","Producto":"Mouse","Categoría":"Accesorios","Cantidad":20,"Precio_Unitario":25,"Total_Venta":500,"Región":"Sur"},
+  {"Fecha":"2024-01-03","Producto":"Monitor","Categoría":"Hardware","Cantidad":10,"Precio_Unitario":200,"Total_Venta":2000,"Región":"Este"},
+  {"Fecha":"2024-01-04","Producto":"Teclado","Categoría":"Accesorios","Cantidad":15,"Precio_Unitario":50,"Total_Venta":750,"Región":"Oeste"},
+  {"Fecha":"2024-01-05","Producto":"Laptop","Categoría":"Hardware","Cantidad":2,"Precio_Unitario":1000,"Total_Venta":2000,"Región":"Sur"}
+]
