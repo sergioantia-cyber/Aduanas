@@ -64,7 +64,16 @@
                         </svg>
                         Cargar Excel
                     </button>
-                    <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" class="hidden"
+                    <!-- Manual Entry Button -->
+                    <button onclick="toggleModal(true)"
+                        class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Nuevo Registro
+                    </button>
+                    <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" class="hidden" multiple
                         onchange="handleFileUpload(this)">
                     <!-- Tooltip -->
                     <div
@@ -93,6 +102,16 @@
                 <div class="h-8 w-px bg-slate-700 mx-1"></div>
 
                 <!-- Actions -->
+                <button onclick="clearData()"
+                    class="bg-slate-800 hover:bg-red-900/40 text-red-500 hover:text-red-400 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 border border-slate-700 mr-2"
+                    title="Borrar todos los datos">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Limpiar
+                </button>
                 <button onclick="exportToCSV()"
                     class="bg-slate-800 hover:bg-slate-700 text-green-400 hover:text-green-300 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 border border-slate-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -197,8 +216,9 @@
                             <th class="p-4 border-b border-slate-800">Cliente</th>
                             <th class="p-4 border-b border-slate-800">Fecha</th>
                             <th class="p-4 border-b border-slate-800">Referencia</th>
+                            <th class="p-4 border-b border-slate-800">No. C</th>
                             <th class="p-4 border-b border-slate-800">Chofer</th>
-                            <th class="p-4 border-b border-slate-800 text-center">Control</th>
+                            <th class="p-4 border-b border-slate-800 text-center">Estatus</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" class="divide-y divide-slate-800/50 text-sm">
@@ -219,10 +239,176 @@
         <span id="toastMsg">Notificación</span>
     </div>
 
+    <!-- MODAL MANUAL ENTRY -->
+    <div id="manualModal" class="fixed inset-0 z-50 hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" onclick="toggleModal(false)">
+        </div>
+
+        <!-- Content -->
+        <div
+            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl p-8">
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <span class="bg-blue-600 p-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </span>
+                Nuevo Registro Manual
+            </h3>
+
+            <form onsubmit="addManualRecord(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 text-xs font-bold uppercase mb-2">Fecha</label>
+                        <input type="date" id="m_fecha" required
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs font-bold uppercase mb-2">No. C</label>
+                        <input type="text" id="m_control" placeholder="Ej: C-12345"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-400 text-xs font-bold uppercase mb-2">Cliente / Importador</label>
+                    <input type="text" id="m_cliente" required placeholder="Nombre de la empresa"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none uppercase">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 text-xs font-bold uppercase mb-2">Referencia</label>
+                        <input type="text" id="m_referencia" placeholder="Ref. Interna"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs font-bold uppercase mb-2">Chofer</label>
+                        <input type="text" id="m_chofer" placeholder="Nombre conductor"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none uppercase">
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex items-center justify-between">
+                    <span class="text-sm font-bold text-slate-300">¿Revisión Antidroga?</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="m_antidroga" class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600">
+                        </div>
+                        <span class="ml-3 text-xs font-medium text-slate-400 peer-checked:text-red-400">SI</span>
+                    </label>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="toggleModal(false)"
+                        class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold transition">Cancelar</button>
+                    <button type="submit"
+                        class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 transition">Guardar
+                        Registro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DECISIÓN DE CARGA (NUEVO) -->
+    <div id="uploadDecisionModal" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-md transition-opacity" onclick="cancelUpload()">
+        </div>
+        <div
+            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl overflow-hidden animate-fade-in-up">
+
+            <!-- Header -->
+            <div class="bg-slate-800/50 p-6 border-b border-slate-700">
+                <h3 class="text-xl font-bold text-white flex items-center gap-3">
+                    <span class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                    </span>
+                    Gestionar Carga de Archivo
+                </h3>
+                <p class="text-slate-400 text-sm mt-2 ml-14">
+                    Estás subiendo: <strong id="uploadFileName" class="text-white text-base">archivo.xlsx</strong>
+                </p>
+            </div>
+
+            <div class="p-8 space-y-8">
+                <!-- Estado Actual -->
+                <div>
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Archivos actualmente en
+                        el sistema:</h4>
+                    <div id="currentFilesList"
+                        class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Opciones de Acción -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Opción 1: Agregar -->
+                    <button onclick="confirmAction('APPEND')"
+                        class="group relative bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 p-4 rounded-xl text-left transition-all hover:shadow-lg hover:shadow-blue-500/10 active:scale-95">
+                        <div class="absolute top-4 right-4 text-slate-600 group-hover:text-blue-400 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4" />
+                            </svg>
+                        </div>
+                        <span class="block text-blue-400 font-bold text-sm uppercase mb-1">Sumar</span>
+                        <span class="text-slate-300 text-xs leading-relaxed">Agregar estos datos a los
+                            existentes.</span>
+                    </button>
+
+                    <!-- Opción 2: Reemplazar Todo -->
+                    <button onclick="confirmAction('REPLACE_ALL')"
+                        class="group relative bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-red-500/50 p-4 rounded-xl text-left transition-all hover:shadow-lg hover:shadow-red-500/10 active:scale-95">
+                        <div class="absolute top-4 right-4 text-slate-600 group-hover:text-red-400 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </div>
+                        <span class="block text-red-400 font-bold text-sm uppercase mb-1">Reemplazar Todo</span>
+                        <span class="text-slate-300 text-xs leading-relaxed">Borrar todo y dejar solo este
+                            archivo.</span>
+                    </button>
+
+                    <!-- Opción 3: Reemplazar Específico -->
+                    <div
+                        class="md:col-span-3 bg-slate-800/30 border border-dashed border-slate-700 rounded-xl p-4 text-center">
+                        <p class="text-slate-400 text-xs">
+                            💡 <span class="text-slate-200 font-bold">Tip:</span> Para reemplazar un archivo específico,
+                            haz clic en el icono <span class="text-red-400 font-bold">♻️</span> junto al nombre del
+                            archivo en la lista de arriba.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-slate-950 p-4 border-t border-slate-800 flex justify-end">
+                <button onclick="cancelUpload()"
+                    class="text-slate-400 hover:text-white font-bold text-sm px-6 py-2 transition-colors">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let rawData = [];
         let filteredData = [];
         let myChart = null;
+
+        // Variables temporales para la gestión de carga
+        let tempUploadData = [];
+        let tempFileName = "";
 
         // --- SISTEMA DE GESTIÓN DE ESTADO ---
         async function init() {
@@ -239,9 +425,9 @@
             }
         }
 
-        function loadDataIntoSystem(data) {
+        function loadDataIntoSystem(data, append = false) {
             // Normalizar datos
-            rawData = data.map(d => {
+            const normalized = data.map(d => {
                 // Intentar parsear fecha para ordenamiento y filtrado
                 let dateObj = null;
 
@@ -265,60 +451,163 @@
                 return {
                     ...d,
                     _dateObj: (dateObj && !isNaN(dateObj)) ? dateObj : null,
-                    _searchStr: Object.values(d).join(' ').toLowerCase()
+                    _searchStr: Object.values(d).join(' ').toLowerCase(),
+                    _sourceFile: d._sourceFile || 'Desconocido'
                 };
             });
+
+            if (append) {
+                rawData = [...rawData, ...normalized];
+                showToast(`✅ Se agregaron ${normalized.length} registros nuevos`);
+            } else {
+                rawData = normalized;
+            }
 
             // Establecer rangos iniciales de fecha en los inputs
             const validDates = rawData.map(d => d._dateObj).filter(d => d);
             if (validDates.length > 0) {
                 const min = new Date(Math.min(...validDates));
                 const max = new Date(Math.max(...validDates));
-                document.getElementById('dateStart').value = min.toISOString().split('T')[0];
-                document.getElementById('dateEnd').value = max.toISOString().split('T')[0];
+
+                const formatDate = (date) => {
+                    const y = date.getFullYear();
+                    const m = String(date.getMonth() + 1).padStart(2, '0');
+                    const d = String(date.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${d}`;
+                };
+
+                document.getElementById('dateStart').value = formatDate(min);
+                document.getElementById('dateEnd').value = formatDate(max);
             }
 
             applyFilters();
         }
 
         // --- MANEJO DE ARCHIVOS EXCEL ---
-        function handleFileUpload(input) {
-            const file = input.files[0];
-            if (!file) return;
+        // --- MANEJO DE ARCHIVOS EXCEL ---
+        async function handleFileUpload(input) {
+            const files = Array.from(input.files);
+            if (files.length === 0) return;
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
+            // Procesamos el primer archivo (limitación temporal para el flujo de decisión)
+            const file = files[0];
+            tempFileName = file.name;
 
-                // Convertir a JSON
-                const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+            try {
+                const data = await readFileData(file);
+                // Asignar etiqueta de origen temporalmente
+                tempUploadData = data.map(d => ({ ...d, _sourceFile: tempFileName }));
 
-                // Adaptar columnas variadas a nuestro estandar
-                // Buscamos columnas clave auque tengan nombres ligeramente distintos
-                const standardized = json.map(row => {
-                    const keys = Object.keys(row);
-                    const findKey = (search) => keys.find(k => k.toUpperCase().includes(search));
+                if (rawData.length > 0) {
+                    showUploadDecisionModal();
+                } else {
+                    loadDataIntoSystem(tempUploadData, false);
+                    showToast(`📂 Archivo cargado: ${tempFileName}`);
+                }
 
-                    return {
-                        CLIENTE: row[findKey('CLIENTE')] || row[findKey('IMPORTADOR')] || 'DESCONOCIDO',
-                        FECHA: row[findKey('FECHA')] || '',
-                        REFERENCIA: row[findKey('REFER')] || row[findKey('REF')] || '',
-                        CHOFER: row[findKey('CHOFER')] || row[findKey('CONDUCTOR')] || '',
-                        ANTIDROGA: row[findKey('DROGA')] || row[findKey('ANTID')] || '',
-                        ADUANA: row[findKey('ADUANA')] || ''
-                    };
-                }).filter(d =>
-                    // Filtros de limpieza básicos (remover filas vacías o totales)
-                    d.CLIENTE !== 'DESCONOCIDO' && d.ADUANA.toUpperCase().includes('TIENDITAS')
-                );
+            } catch (e) {
+                console.error(e);
+                showToast(`⚠️ Error al leer ${file.name}`);
+            }
+            input.value = '';
+        }
 
-                loadDataIntoSystem(standardized);
-                showToast(`📂 Archivo procesado: ${standardized.length} registros válidos`);
-            };
-            reader.readAsArrayBuffer(file);
+        function showUploadDecisionModal() {
+            const modal = document.getElementById('uploadDecisionModal');
+            document.getElementById('uploadFileName').innerText = tempFileName;
+
+            // Listar archivos actuales
+            const currentFiles = [...new Set(rawData.map(d => d._sourceFile))];
+            const listContainer = document.getElementById('currentFilesList');
+
+            listContainer.innerHTML = currentFiles.map(fileName => `
+                <div class="flex items-center justify-between bg-slate-950 p-3 rounded-lg border border-slate-800 hover:border-slate-700 transition-colors">
+                    <div class="flex items-center gap-2 overflow-hidden flex-1 mr-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span class="text-slate-300 text-xs font-mono truncate" title="${fileName}">${fileName}</span>
+                    </div>
+                    <button onclick="confirmAction('REPLACE_SPECIFIC', '${fileName}')" 
+                        class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 px-3 py-1.5 rounded transition-all flex items-center gap-1 border border-slate-700 hover:border-red-500/30 shadow-sm"
+                        title="Reemplazar solo este archivo con el nuevo">
+                        <span class="font-bold text-red-500">♻️</span> Reemplazar
+                    </button>
+                </div>
+            `).join('');
+
+            modal.classList.remove('hidden');
+        }
+
+        function cancelUpload() {
+            document.getElementById('uploadDecisionModal').classList.add('hidden');
+            tempUploadData = [];
+            tempFileName = "";
+            showToast("Operación cancelada");
+        }
+
+        function confirmAction(action, targetFile = null) {
+            document.getElementById('uploadDecisionModal').classList.add('hidden');
+
+            if (action === 'APPEND') {
+                loadDataIntoSystem(tempUploadData, true);
+                showToast(`✅ Se agregaron datos de ${tempFileName}`);
+            }
+            else if (action === 'REPLACE_ALL') {
+                loadDataIntoSystem(tempUploadData, false); // false = overwrite
+                showToast(`🗑️ Sistema reiniciado con: ${tempFileName}`);
+            }
+            else if (action === 'REPLACE_SPECIFIC' && targetFile) {
+                // 1. Filtrar todo MENOS el archivo target
+                const keptData = rawData.filter(d => d._sourceFile !== targetFile);
+                // 2. Establecer rawData con los datos conservados
+                rawData = keptData;
+                // 3. Agregar los nuevos (que vienen con _sourceFile = tempFileName)
+                loadDataIntoSystem(tempUploadData, true);
+
+                showToast(`🔄 Se reemplazó "${targetFile}" por "${tempFileName}"`);
+            }
+
+            // Limpieza
+            tempUploadData = [];
+            tempFileName = "";
+        }
+
+        function readFileData(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const sheet = workbook.Sheets[sheetName];
+                        const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+                        const standardized = json.map(row => {
+                            const keys = Object.keys(row);
+                            const findKey = (search) => keys.find(k => k.toUpperCase().includes(search));
+
+                            return {
+                                CLIENTE: row[findKey('CLIENTE')] || row[findKey('IMPORTADOR')] || 'DESCONOCIDO',
+                                FECHA: row[findKey('FECHA')] || '',
+                                REFERENCIA: row[findKey('REFER')] || row[findKey('REF')] || '',
+                                CONTROL: row[findKey('CONTROL')] || row[findKey('NRO C')] || row['C'] || '',
+                                CHOFER: row[findKey('CHOFER')] || row[findKey('CONDUCTOR')] || '',
+                                ANTIDROGA: row[findKey('DROGA')] || row[findKey('ANTID')] || '',
+                                ADUANA: row[findKey('ADUANA')] || ''
+                            };
+                        }).filter(d =>
+                            d.CLIENTE !== 'DESCONOCIDO' && d.ADUANA.toUpperCase().includes('TIENDITAS')
+                        );
+                        resolve(standardized);
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
         }
 
         // --- FILTRADO ---
@@ -327,9 +616,20 @@
             const startStr = document.getElementById('dateStart').value;
             const endStr = document.getElementById('dateEnd').value;
 
-            const start = startStr ? new Date(startStr) : null;
-            const end = endStr ? new Date(endStr) : null;
-            if (end) end.setHours(23, 59, 59);
+            // Fix: Parse input dates as local time to match data
+            let start = null;
+            if (startStr) {
+                const parts = startStr.split('-');
+                start = new Date(parts[0], parts[1] - 1, parts[2]);
+                start.setHours(0, 0, 0, 0);
+            }
+
+            let end = null;
+            if (endStr) {
+                const parts = endStr.split('-');
+                end = new Date(parts[0], parts[1] - 1, parts[2]);
+                end.setHours(23, 59, 59, 999);
+            }
 
             filteredData = rawData.filter(d => {
                 // 1. Buscador
@@ -354,11 +654,62 @@
             if (validDates.length > 0) {
                 const min = new Date(Math.min(...validDates));
                 const max = new Date(Math.max(...validDates));
-                document.getElementById('dateStart').value = min.toISOString().split('T')[0];
-                document.getElementById('dateEnd').value = max.toISOString().split('T')[0];
+
+                const formatDate = (date) => {
+                    const y = date.getFullYear();
+                    const m = String(date.getMonth() + 1).padStart(2, '0');
+                    const d = String(date.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${d}`;
+                };
+
+                document.getElementById('dateStart').value = formatDate(min);
+                document.getElementById('dateEnd').value = formatDate(max);
             }
             applyFilters();
             showToast("✨ Filtros limpiados");
+        }
+
+        function clearData() {
+            if (confirm("¿Estás seguro de borrar todos los datos actuales?")) {
+                rawData = [];
+                applyFilters();
+                showToast("🗑️ Datos eliminados");
+            }
+        }
+
+        // --- SISTEMA MANUAL ---
+        function toggleModal(show) {
+            const modal = document.getElementById('manualModal');
+            if (show) {
+                modal.classList.remove('hidden');
+                // Set default date
+                document.getElementById('m_fecha').valueAsDate = new Date();
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function addManualRecord(e) {
+            e.preventDefault();
+
+            const fechaInput = document.getElementById('m_fecha').value;
+            const [y, m, d] = fechaInput.split('-');
+
+            const newRecord = {
+                CLIENTE: document.getElementById('m_cliente').value.toUpperCase(),
+                FECHA: `${d}/${m}/${y}`,
+                REFERENCIA: document.getElementById('m_referencia').value.toUpperCase() || '',
+                CONTROL: document.getElementById('m_control').value.toUpperCase() || '',
+                CHOFER: document.getElementById('m_chofer').value.toUpperCase() || '',
+                ANTIDROGA: document.getElementById('m_antidroga').checked ? 'SI' : 'NO',
+                ADUANA: 'TIENDITAS (MANUAL)'
+            };
+
+            loadDataIntoSystem([newRecord], true);
+
+            toggleModal(false);
+            e.target.reset();
+            showToast("💾 Registro guardado exitosamente");
         }
 
         // --- RENDERIZADO ---
@@ -380,9 +731,15 @@
                     const isReview = String(d.ANTIDROGA).toUpperCase().includes('SI');
                     return `
                     <tr class="hover:bg-slate-800 transition group border-b border-slate-800/50">
-                        <td class="p-4 font-bold text-blue-400 group-hover:text-blue-300">${d.CLIENTE}</td>
+                        <td class="p-4 font-bold text-blue-400 group-hover:text-blue-300">
+                            ${d.CLIENTE}
+                            <div class="text-[9px] text-slate-600 font-normal uppercase tracking-wide mt-1 truncate max-w-[150px]" title="${d._sourceFile}">
+                                ${d._sourceFile || ''}
+                            </div>
+                        </td>
                         <td class="p-4 text-slate-400 font-mono text-xs">${d.FECHA}</td>
                         <td class="p-4 text-slate-300 font-mono text-xs tracking-wider">${d.REFERENCIA}</td>
+                        <td class="p-4 text-slate-300 font-mono text-xs">${d.CONTROL || '-'}</td>
                         <td class="p-4 text-slate-400 text-xs uppercase">${d.CHOFER || '-'}</td>
                         <td class="p-4 text-center">
                             ${isReview
@@ -454,8 +811,10 @@
                 CLIENTE: d.CLIENTE,
                 FECHA: d.FECHA,
                 REFERENCIA: d.REFERENCIA,
+                NO_C: d.CONTROL,
                 CHOFER: d.CHOFER,
-                ESTATUS: d.ANTIDROGA
+                ESTATUS: d.ANTIDROGA,
+                FUENTE: d._sourceFile || ''
             }));
 
             const ws = XLSX.utils.json_to_sheet(cleanData);
