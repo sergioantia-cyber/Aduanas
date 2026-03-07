@@ -10,6 +10,10 @@
     <!-- SheetJS para manejo de Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -33,15 +37,95 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #475569;
         }
+
+        /* Animations */
+        @keyframes pulse-bg {
+            0% {
+                background-color: #1e293b;
+            }
+
+            50% {
+                background-color: #334155;
+            }
+
+            100% {
+                background-color: #1e293b;
+            }
+        }
+
+        .skeleton {
+            animation: pulse-bg 1.5s ease-in-out infinite;
+            border-radius: 0.5rem;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 
 <body class="bg-slate-950 text-white p-6 min-h-screen">
     <div class="max-w-7xl mx-auto">
 
+        <!-- PANTALLA DE BIENVENIDA / CARGA (NUEVO) -->
+        <div id="welcomeView"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-6 transition-all duration-700">
+            <div class="max-w-xl w-full text-center space-y-8 animate-fade-in">
+                <div class="relative inline-block">
+                    <div
+                        class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-30 animate-pulse">
+                    </div>
+                    <div class="relative bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl">
+                        <h1
+                            class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 uppercase tracking-tighter mb-4">
+                            PANEL DE ADUANAS
+                        </h1>
+                        <p class="text-slate-400 text-lg font-medium leading-relaxed">
+                            Bienvenido al sistema de inteligencia de negocios. Para comenzar, por favor carga tu archivo
+                            de operaciones.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <button onclick="document.getElementById('fileInput').click()"
+                        class="group relative flex flex-col items-center justify-center p-12 bg-slate-900/50 border-2 border-dashed border-slate-700 hover:border-blue-500/50 rounded-3xl transition-all hover:bg-slate-900 shadow-xl overflow-hidden active:scale-95">
+                        <div
+                            class="absolute inset-0 bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        </div>
+                        <div class="bg-blue-600/20 p-4 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-white mb-2 uppercase tracking-wide">Seleccionar
+                            Archivo</span>
+                        <span class="text-slate-500 text-sm">Soporta formatos .xlsx, .xls y .csv</span>
+                    </button>
+
+                    <p class="text-slate-600 text-xs uppercase tracking-widest font-bold">O también puedes arrastrar
+                        archivos directamente aquí</p>
+                </div>
+            </div>
+        </div>
+
         <!-- HEADER & TOOLBAR -->
-        <header
-            class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 border-b border-slate-800 pb-6 gap-6">
+        <header id="mainHeader"
+            class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 border-b border-slate-800 pb-6 gap-6 opacity-0 pointer-events-none transition-opacity duration-700">
             <div>
                 <h1
                     class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 uppercase tracking-tighter">
@@ -102,7 +186,7 @@
                 <div class="h-8 w-px bg-slate-700 mx-1"></div>
 
                 <!-- Actions -->
-                <button onclick="clearData()"
+                <button onclick="showClearModal()"
                     class="bg-slate-800 hover:bg-red-900/40 text-red-500 hover:text-red-400 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 border border-slate-700 mr-2"
                     title="Borrar todos los datos">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -134,97 +218,127 @@
             </div>
         </header>
 
-        <!-- SEARCH BAR -->
-        <div class="mb-8 relative group">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg class="h-5 w-5 text-slate-500 group-focus-within:text-blue-500 transition-colors"
-                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                        clip-rule="evenodd" />
-                </svg>
-            </div>
-            <input type="text" id="searchInput" onkeyup="applyFilters()"
-                class="block w-full bg-slate-900 border border-slate-800 rounded-xl py-4 pl-12 pr-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-lg text-sm font-medium"
-                placeholder="Buscador Inteligente: Escribe nombre de cliente, chofer, referencia o estatus (ej: 'TIENDITAS', 'ROJO')...">
-        </div>
+        <!-- DASHBOARD CONTENT (CONTENEDOR) -->
+        <div id="dashboardContent" class="opacity-0 pointer-events-none transition-all duration-700 translate-y-8">
 
-        <!-- DASHBOARD GRID -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-
-            <!-- LEFT: CHART (8 cols) -->
-            <div class="lg:col-span-8 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Volumen por Cliente</h3>
-                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded border border-slate-700">Top
-                        10 Activos</span>
+            <!-- SKELETON LOADER (NUEVO) -->
+            <div id="skeletonLoader" class="hidden space-y-6 mb-8">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-8 bg-slate-900/50 p-6 rounded-2xl border border-slate-800 h-80 skeleton">
+                    </div>
+                    <div class="lg:col-span-4 flex flex-col gap-4">
+                        <div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 h-36 skeleton"></div>
+                        <div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 h-36 skeleton"></div>
+                    </div>
                 </div>
-                <div class="flex-grow relative h-64 w-full">
-                    <canvas id="mainChart"></canvas>
-                </div>
+                <div class="bg-slate-900/50 rounded-2xl border border-slate-800 h-96 skeleton"></div>
             </div>
 
-            <!-- RIGHT: KPIs (4 cols) -->
-            <div class="lg:col-span-4 flex flex-col gap-4">
-                <!-- KPI 1 -->
-                <div
-                    class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden group">
+            <!-- SEARCH BAR -->
+            <div id="dashboardActualUI">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-slate-500 group-focus-within:text-blue-500 transition-colors"
+                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <input type="text" id="searchInput" onkeyup="applyFilters()"
+                    class="block w-full bg-slate-900 border border-slate-800 rounded-xl py-4 pl-12 pr-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-lg text-sm font-medium"
+                    placeholder="Buscador Inteligente: Escribe nombre de cliente, chofer, referencia o estatus (ej: 'TIENDITAS', 'ROJO')...">
+            </div>
+
+            <!-- DASHBOARD GRID -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+
+                <!-- LEFT: CHART (8 cols) -->
+                <div class="lg:col-span-8 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Volumen por Cliente</h3>
+                        <span
+                            class="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded border border-slate-700">Top
+                            10 Activos</span>
+                    </div>
+                    <div class="flex-grow relative h-64 w-full">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- RIGHT: KPIs (4 cols) -->
+                <div class="lg:col-span-4 flex flex-col gap-4">
+                    <!-- KPI 1 -->
                     <div
-                        class="absolute -right-6 -top-6 rounded-full w-24 h-24 bg-blue-500/10 group-hover:bg-blue-500/20 transition-all blur-xl">
+                        class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden group">
+                        <div
+                            class="absolute -right-6 -top-6 rounded-full w-24 h-24 bg-blue-500/10 group-hover:bg-blue-500/20 transition-all blur-xl">
+                        </div>
+                        <p class="text-xs text-blue-400 font-bold uppercase tracking-widest mb-1">Total Movimientos</p>
+                        <div class="flex items-end gap-2">
+                            <h2 id="kpiTotal" class="text-5xl font-black text-white tracking-tighter">-</h2>
+                            <span class="text-xs text-slate-500 mb-2 font-medium">viajes</span>
+                        </div>
                     </div>
-                    <p class="text-xs text-blue-400 font-bold uppercase tracking-widest mb-1">Total Movimientos</p>
-                    <div class="flex items-end gap-2">
-                        <h2 id="kpiTotal" class="text-5xl font-black text-white tracking-tighter">-</h2>
-                        <span class="text-xs text-slate-500 mb-2 font-medium">viajes</span>
-                    </div>
-                </div>
 
-                <!-- KPI 2 -->
-                <div
-                    class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden group">
+                    <!-- KPI 2 (REDISEÑADO) -->
                     <div
-                        class="absolute -right-6 -top-6 rounded-full w-24 h-24 bg-red-500/10 group-hover:bg-red-500/20 transition-all blur-xl">
-                    </div>
-                    <p class="text-xs text-red-400 font-bold uppercase tracking-widest mb-1">Revisiones Antidroga</p>
-                    <div class="flex items-end gap-2">
-                        <h2 id="kpiReviews" class="text-5xl font-black text-white tracking-tighter">-</h2>
-                        <span class="text-xs text-slate-500 mb-2 font-medium">alertas</span>
+                        class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden group">
+                        <div
+                            class="absolute -right-6 -top-6 rounded-full w-24 h-24 bg-red-500/10 group-hover:bg-red-500/20 transition-all blur-xl">
+                        </div>
+                        <p class="text-[10px] text-red-400 font-bold uppercase tracking-widest mb-3">Control Antidroga
+                        </p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h2 id="kpiRevisados" class="text-3xl font-black text-white tracking-tighter">-</h2>
+                                <span class="text-[9px] text-slate-500 font-bold uppercase">Revisados</span>
+                            </div>
+                            <div class="border-l border-slate-700 pl-4">
+                                <h2 id="kpiNoRevisados" class="text-3xl font-black text-slate-400 tracking-tighter">-
+                                </h2>
+                                <span class="text-[9px] text-slate-500 font-bold uppercase">No Revisó</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- DATA TABLE -->
-        <div
-            class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col h-[500px]">
+            <!-- DATA TABLE -->
             <div
-                class="p-4 bg-slate-950/50 border-b border-slate-800 flex justify-between items-center backdrop-blur-sm">
-                <h3 class="font-bold uppercase text-xs tracking-widest text-slate-400 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    Detalle de Operaciones
-                </h3>
-                <span id="recordCount"
-                    class="text-[10px] font-mono text-slate-600 bg-slate-900 px-2 py-1 rounded border border-slate-800">Mostrando
-                    0 registros</span>
-            </div>
+                class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col h-[500px]">
+                <div
+                    class="p-4 bg-slate-950/50 border-b border-slate-800 flex justify-between items-center backdrop-blur-sm">
+                    <h3 class="font-bold uppercase text-xs tracking-widest text-slate-400 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        Detalle de Operaciones
+                    </h3>
+                    <span id="recordCount"
+                        class="text-[10px] font-mono text-slate-600 bg-slate-900 px-2 py-1 rounded border border-slate-800">Mostrando
+                        0 registros</span>
+                </div>
 
-            <div class="overflow-auto flex-grow scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900 p-0">
-                <table class="w-full text-left border-collapse">
-                    <thead
-                        class="bg-slate-900 text-slate-500 uppercase text-[10px] font-bold tracking-wider sticky top-0 z-10 shadow-md">
-                        <tr>
-                            <th class="p-4 border-b border-slate-800">Cliente</th>
-                            <th class="p-4 border-b border-slate-800">Fecha</th>
-                            <th class="p-4 border-b border-slate-800">Referencia</th>
-                            <th class="p-4 border-b border-slate-800">No. C</th>
-                            <th class="p-4 border-b border-slate-800">Chofer</th>
-                            <th class="p-4 border-b border-slate-800 text-center">Estatus</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody" class="divide-y divide-slate-800/50 text-sm">
-                        <!-- Rows injected via JS -->
-                    </tbody>
-                </table>
+                <div
+                    class="overflow-x-auto flex-grow scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900 border-t border-slate-800">
+                    <table class="w-full text-left border-collapse min-w-[1500px]">
+                        <thead
+                            class="bg-slate-900 text-slate-500 uppercase text-[10px] font-bold tracking-wider sticky top-0 z-20 shadow-md">
+                            <tr>
+                                <th class="p-4 border-b border-slate-800 sticky left-0 bg-slate-900 z-30 min-w-[200px]">
+                                    Cliente</th>
+                                <th class="p-4 border-b border-slate-800">Fecha Llegada</th>
+                                <th class="p-4 border-b border-slate-800">Dua / Manifiesto</th>
+                                <th class="p-4 border-b border-slate-800">Referencia</th>
+                                <th class="p-4 border-b border-slate-800">Placa / Chofer</th>
+                                <th class="p-4 border-b border-slate-800">Mercancía</th>
+                                <th class="p-4 border-b border-slate-800 text-center">Estatus</th>
+                                <th class="p-4 border-b border-slate-800 text-center">Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-slate-800/50 text-xs">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -393,10 +507,88 @@
                 </div>
             </div>
 
-            <!-- Footer -->
-            <div class="bg-slate-950 p-4 border-t border-slate-800 flex justify-end">
-                <button onclick="cancelUpload()"
-                    class="text-slate-400 hover:text-white font-bold text-sm px-6 py-2 transition-colors">Cancelar</button>
+        </div>
+    </div>
+    </div>
+
+    <!-- MODAL CONFIRMACIÓN LIMPIAR (NUEVO) -->
+    <div id="clearConfirmModal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-md" onclick="hideClearModal()"></div>
+        <div
+            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-slate-900 rounded-2xl border border-red-500/30 shadow-2xl p-8 text-center">
+            <div class="bg-red-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Borrar Todo el Panel</h3>
+            <p class="text-slate-400 text-sm mb-6">Esta acción no se puede deshacer. Ingresa el código de seguridad para
+                confirmar (0424).</p>
+
+            <div class="space-y-4">
+                <input type="password" id="clearCodeInput" maxlength="4" placeholder="Código de 4 dígitos"
+                    class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-center text-2xl font-black tracking-[1em] text-white focus:border-red-500 focus:outline-none placeholder:text-slate-700 placeholder:text-sm placeholder:tracking-normal">
+
+                <div class="flex gap-3 pt-2">
+                    <button onclick="hideClearModal()"
+                        class="flex-1 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold hover:bg-slate-700 transition">Cancelar</button>
+                    <button onclick="validateClearCode()"
+                        class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-500 shadow-lg shadow-red-600/20 transition">Limpiar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VISTA DETALLADA (NUEVO) -->
+    <div id="detailModal" class="fixed inset-0 z-[110] hidden">
+        <div class="absolute inset-0 bg-slate-950/95 backdrop-blur-md" onclick="hideDetail()"></div>
+        <div
+            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden animate-fade-in-up">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-900/40 to-slate-800 p-8 border-b border-slate-700 relative">
+                <button onclick="hideDetail()"
+                    class="absolute top-6 right-6 text-slate-500 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <div class="flex items-center gap-4">
+                    <div id="detailStatusIcon" class="p-3 rounded-2xl shadow-lg"></div>
+                    <div>
+                        <h2 id="detailClient" class="text-3xl font-black text-white uppercase tracking-tighter">CLIENTE
+                        </h2>
+                        <p id="detailReference" class="text-blue-400 font-mono text-sm font-bold mt-1 uppercase"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="p-8 grid grid-cols-1 md:grid-cols-3 gap-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <!-- Col 1: Logística -->
+                <div class="space-y-6">
+                    <h4
+                        class="text-[10px] font-black text-slate-500 uppercase tracking-widest border-l-2 border-blue-500 pl-2">
+                        Información Logística</h4>
+                    <div id="groupLogistica" class="space-y-4"></div>
+                </div>
+                <!-- Col 2: Documentación -->
+                <div class="space-y-6">
+                    <h4
+                        class="text-[10px] font-black text-slate-500 uppercase tracking-widest border-l-2 border-cyan-500 pl-2">
+                        Documentación y Aduana</h4>
+                    <div id="groupDocumentacion" class="space-y-4"></div>
+                </div>
+                <!-- Col 3: Operación/Gastos -->
+                <div class="space-y-6">
+                    <h4
+                        class="text-[10px] font-black text-slate-500 uppercase tracking-widest border-l-2 border-red-500 pl-2">
+                        Operación y Adicionales</h4>
+                    <div id="groupOperacion" class="space-y-4"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -412,48 +604,54 @@
 
         // --- SISTEMA DE GESTIÓN DE ESTADO ---
         async function init() {
-            try {
-                // Intentar cargar datos json pre-procesados si existen
-                const res = await fetch('datos_finales.json');
-                if (res.ok) {
-                    const json = await res.json();
-                    loadDataIntoSystem(json);
-                    showToast("✅ Datos cargados del servidor local");
-                }
-            } catch (e) {
-                console.log("Modo sin conexión o sin datos precargados.");
+            console.log("Sistema iniciado. Esperando carga de archivo.");
+
+            // Registro de Service Worker para Modo Offline
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(() => console.log("PWA: Modo Offline Activo"))
+                    .catch(e => console.error("PWA Error:", e));
             }
         }
 
         function loadDataIntoSystem(data, append = false) {
             // Normalizar datos
             const normalized = data.map(d => {
-                // Intentar parsear fecha para ordenamiento y filtrado
-                let dateObj = null;
+                // Función interna para parsear cualquier fecha ya sea Objeto Date, string o serial
+                const parseDateField = (val) => {
+                    if (!val) return '';
+                    let dateObj = null;
+                    if (val instanceof Date) {
+                        dateObj = val;
+                    } else if (typeof val === 'number') {
+                        dateObj = new Date(Math.round((val - 25569) * 86400 * 1000));
+                        dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
+                    } else if (typeof val === 'string' && val.includes('/')) {
+                        const parts = val.split('/');
+                        if (parts.length === 3) dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                    } else {
+                        dateObj = new Date(val);
+                    }
+                    if (dateObj && !isNaN(dateObj)) {
+                        return dateObj.toLocaleDateString('es-ES');
+                    }
+                    return String(val);
+                };
 
-                // Caso 1: Viene de Excel (numero dias desde 1900)
-                if (typeof d.FECHA === 'number') {
-                    dateObj = new Date(Math.round((d.FECHA - 25569) * 86400 * 1000));
-                    dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
-                    d.FECHA = dateObj.toLocaleDateString('es-ES');
-                }
-                // Caso 2: String DD/MM/YYYY (común en latam)
-                else if (typeof d.FECHA === 'string' && d.FECHA.includes('/')) {
-                    const parts = d.FECHA.split('/'); // dia/mes/año
-                    // Asumir DD/MM/YYYY
-                    if (parts.length === 3) dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
-                }
-                // Caso 3: String ISO o standard
-                else {
-                    dateObj = new Date(d.FECHA);
-                }
+                d.FECHA_LLEGADA = parseDateField(d.FECHA_LLEGADA);
+                d.FECHA_SALIDA = parseDateField(d.FECHA_SALIDA);
+                d.FECHA = parseDateField(d.FECHA);
 
                 return {
                     ...d,
-                    _dateObj: (dateObj && !isNaN(dateObj)) ? dateObj : null,
+                    _dateObj: d.FECHA_LLEGADA ? new Date(d.FECHA_LLEGADA.split('/').reverse().join('-')) : new Date(),
                     _searchStr: Object.values(d).join(' ').toLowerCase(),
                     _sourceFile: d._sourceFile || 'Desconocido'
                 };
+            }).filter(d => {
+                const c = d.CLIENTE.toUpperCase();
+                // Eliminar filas que sean encabezados repetidos (muy común al pegar varias tablas en un excel)
+                return c !== 'CLIENTE' && c !== 'IMPORTADOR' && c !== 'NOMBRE' && c !== 'NOMB' && c !== 'IMPORTADOR / CLIENTE';
             });
 
             if (append) {
@@ -461,6 +659,18 @@
                 showToast(`✅ Se agregaron ${normalized.length} registros nuevos`);
             } else {
                 rawData = normalized;
+            }
+
+            // --- MANEJO DE VISTA (BIENVENIDA vs DASHBOARD) ---
+            if (rawData.length > 0) {
+                document.getElementById('welcomeView').classList.add('opacity-0', 'pointer-events-none', 'scale-110');
+                setTimeout(() => {
+                    document.getElementById('welcomeView').classList.add('hidden');
+                    const header = document.getElementById('mainHeader');
+                    const content = document.getElementById('dashboardContent');
+                    header.classList.remove('opacity-0', 'pointer-events-none');
+                    content.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-8');
+                }, 700);
             }
 
             // Establecer rangos iniciales de fecha en los inputs
@@ -494,18 +704,25 @@
             tempFileName = file.name;
 
             try {
+                // ACTIVAR SKELETON
+                showSkeleton(true);
+
                 const data = await readFileData(file);
                 // Asignar etiqueta de origen temporalmente
                 tempUploadData = data.map(d => ({ ...d, _sourceFile: tempFileName }));
 
-                if (rawData.length > 0) {
-                    showUploadDecisionModal();
-                } else {
-                    loadDataIntoSystem(tempUploadData, false);
-                    showToast(`📂 Archivo cargado: ${tempFileName}`);
-                }
+                setTimeout(() => {
+                    showSkeleton(false);
+                    if (rawData.length > 0) {
+                        showUploadDecisionModal();
+                    } else {
+                        loadDataIntoSystem(tempUploadData, false);
+                        showToast(`📂 Archivo cargado: ${tempFileName}`);
+                    }
+                }, 1000); // Simulamos procesado para ver el skeleton
 
             } catch (e) {
+                showSkeleton(false);
                 console.error(e);
                 showToast(`⚠️ Error al leer ${file.name}`);
             }
@@ -580,27 +797,72 @@
                     try {
                         const data = new Uint8Array(e.target.result);
                         const workbook = XLSX.read(data, { type: 'array' });
-                        const sheetName = workbook.SheetNames[0];
-                        const sheet = workbook.Sheets[sheetName];
-                        const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+                        let allData = [];
 
-                        const standardized = json.map(row => {
-                            const keys = Object.keys(row);
-                            const findKey = (search) => keys.find(k => k.toUpperCase().includes(search));
+                        workbook.SheetNames.forEach(sheetName => {
+                            const sheet = workbook.Sheets[sheetName];
+                            const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-                            return {
-                                CLIENTE: row[findKey('CLIENTE')] || row[findKey('IMPORTADOR')] || 'DESCONOCIDO',
-                                FECHA: row[findKey('FECHA')] || '',
-                                REFERENCIA: row[findKey('REFER')] || row[findKey('REF')] || '',
-                                CONTROL: row[findKey('CONTROL')] || row[findKey('NRO C')] || row['C'] || '',
-                                CHOFER: row[findKey('CHOFER')] || row[findKey('CONDUCTOR')] || '',
-                                ANTIDROGA: row[findKey('DROGA')] || row[findKey('ANTID')] || '',
-                                ADUANA: row[findKey('ADUANA')] || ''
-                            };
-                        }).filter(d =>
-                            d.CLIENTE !== 'DESCONOCIDO' && d.ADUANA.toUpperCase().includes('TIENDITAS')
-                        );
-                        resolve(standardized);
+                            const standardized = json.map(row => {
+                                const keys = Object.keys(row);
+                                const findKey = (search) => keys.find(k => k.toUpperCase().includes(search));
+
+                                return {
+                                    MES: row[findKey('ME 8')] || row[findKey('MES')] || '',
+                                    CLIENTE: String(row[findKey('CLIENTE')] || row[findKey('IMPORTADOR')] || row[findKey('NOMB')] || 'S/N').toUpperCase().trim(),
+                                    RIF: row[findKey('RIF')] || '',
+                                    DUA: row[findKey('DUA')] || row[findKey('CONTROL')] || '',
+                                    ADUANA: row[findKey('ADUANA')] || 'GENERAL',
+                                    MERCANCIA: row[findKey('MERCANCIA')] || row[findKey('MERC')] || '',
+                                    FECHA_LLEGADA: row[findKey('FECHA DE LLEGADA')] || row[findKey('LLEGADA')] || row[findKey('FECHA')] || '',
+                                    FECHA_SALIDA: row[findKey('FECHA DE SALIDA')] || row[findKey('SALIDA')] || '',
+                                    CARTA_PORTE: row[findKey('CARTA DE PORTE')] || row[findKey('CP')] || '',
+                                    MANIFIESTO: row[findKey('MANIFIESTO')] || row[findKey('INT')] || '',
+                                    FACTURA: row[findKey('FACTURA')] || row[findKey('NRO F')] || '',
+                                    CERTIFICADO: row[findKey('CERTIFICADO')] || row[findKey('ORIGEN')] || '',
+                                    COMEX: row[findKey('COMEX')] || '',
+                                    ANTIDROGA_INFO: (function () {
+                                        const rawVal = String(row[findKey('ANTIDROGA')] || row[findKey('DROGA')] || row[findKey('ANTID')] || '').toUpperCase().trim();
+                                        let revisados = 0;
+                                        let total = 1;
+
+                                        if (!rawVal || rawVal === 'NO' || rawVal === 'N/A' || rawVal === '0' || rawVal === 'FALSE') {
+                                            revisados = 0;
+                                            total = 1;
+                                        } else if (rawVal.includes('/')) {
+                                            const parts = rawVal.split('/');
+                                            revisados = parseInt(parts[0]) || 0;
+                                            total = parseInt(parts[1]) || revisados || 1;
+                                        } else if (rawVal === 'SI' || rawVal === 'X' || rawVal === 'S') {
+                                            revisados = 1;
+                                            total = 1;
+                                        } else if (!isNaN(rawVal)) {
+                                            revisados = parseInt(rawVal);
+                                            total = revisados; // Asumir que se revisaron todos los indicados
+                                        } else {
+                                            revisados = 1; // Un nombre o texto se cuenta como 1 revisión
+                                            total = 1;
+                                        }
+
+                                        return { revisados, total, text: rawVal };
+                                    })(),
+                                    OPERACION_ADICIONAL: row[findKey('OPERACION ADICIONAL')] || row[findKey('OP ADIC')] || '',
+                                    GANDOLA: row[findKey('GANDOLA')] || '',
+                                    CONDUCTOR: row[findKey('CONDUCTOR')] || row[findKey('CONDUCT')] || row[findKey('CHOFER')] || '',
+                                    PLACA: row[findKey('PLACA')] || '',
+                                    GASTOS: row[findKey('GASTO')] || row[findKey('ADICIONALES')] || '',
+                                    REFERENCIA: row[findKey('REFERENCIA')] || row[findKey('REF')] || row[findKey('REFER')] || '',
+                                    // Alias para compatibilidad con código anterior
+                                    FECHA: row[findKey('FECHA DE LLEGADA')] || row[findKey('FECHA')] || '',
+                                    CHOFER: row[findKey('CONDUCTOR')] || row[findKey('CHOFER')] || '',
+                                    _sheet: sheetName
+                                };
+                            }).filter(d => d.CLIENTE !== 'S/N' || d.FECHA !== ''); // Evitar filas vacías
+
+                            allData = [...allData, ...standardized];
+                        });
+
+                        resolve(allData);
                     } catch (err) {
                         reject(err);
                     }
@@ -669,11 +931,52 @@
             showToast("✨ Filtros limpiados");
         }
 
+        function showClearModal() {
+            document.getElementById('clearConfirmModal').classList.remove('hidden');
+            document.getElementById('clearCodeInput').focus();
+        }
+
+        function hideClearModal() {
+            document.getElementById('clearConfirmModal').classList.add('hidden');
+            document.getElementById('clearCodeInput').value = '';
+        }
+
+        function validateClearCode() {
+            const code = document.getElementById('clearCodeInput').value;
+            if (code === '0424') {
+                clearData();
+                hideClearModal();
+            } else {
+                showToast("❌ Código incorrecto");
+                document.getElementById('clearCodeInput').classList.add('shake');
+                setTimeout(() => document.getElementById('clearCodeInput').classList.remove('shake'), 400);
+                document.getElementById('clearCodeInput').value = '';
+            }
+        }
+
         function clearData() {
-            if (confirm("¿Estás seguro de borrar todos los datos actuales?")) {
-                rawData = [];
-                applyFilters();
-                showToast("🗑️ Datos eliminados");
+            rawData = [];
+            filteredData = [];
+            // Volver a la pantalla de bienvenida
+            document.getElementById('welcomeView').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('welcomeView').classList.remove('opacity-0', 'pointer-events-none', 'scale-110');
+                document.getElementById('mainHeader').classList.add('opacity-0', 'pointer-events-none');
+                document.getElementById('dashboardContent').classList.add('opacity-0', 'pointer-events-none', 'translate-y-8');
+            }, 10);
+
+            showToast("🗑️ Todos los datos han sido borrados");
+        }
+
+        function showSkeleton(show) {
+            const loader = document.getElementById('skeletonLoader');
+            const ui = document.getElementById('dashboardActualUI');
+            if (show) {
+                loader.classList.remove('hidden');
+                ui.classList.add('hidden');
+            } else {
+                loader.classList.add('hidden');
+                ui.classList.remove('hidden');
             }
         }
 
@@ -701,7 +1004,7 @@
                 REFERENCIA: document.getElementById('m_referencia').value.toUpperCase() || '',
                 CONTROL: document.getElementById('m_control').value.toUpperCase() || '',
                 CHOFER: document.getElementById('m_chofer').value.toUpperCase() || '',
-                ANTIDROGA: document.getElementById('m_antidroga').checked ? 'SI' : 'NO',
+                ANTIDROGA_INFO: { revisados: document.getElementById('m_antidroga').checked ? 1 : 0, total: 1, text: document.getElementById('m_antidroga').checked ? 'SI' : 'NO' },
                 ADUANA: 'TIENDITAS (MANUAL)'
             };
 
@@ -715,10 +1018,21 @@
         // --- RENDERIZADO ---
         function updateVisuals() {
             // 1. KPI
+            let totalVehiculosRevisados = 0;
+            let totalVehiculos = 0;
+
+            filteredData.forEach(d => {
+                totalVehiculosRevisados += d.ANTIDROGA_INFO.revisados;
+                totalVehiculos += d.ANTIDROGA_INFO.total;
+            });
+
+            const noRevisados = totalVehiculos - totalVehiculosRevisados;
+
+            // Restablecido: El Total principal es el número de operaciones (repeticiones/filas)
             document.getElementById('kpiTotal').innerText = filteredData.length;
-            const reviews = filteredData.filter(d => String(d.ANTIDROGA).toUpperCase().includes('SI')).length;
-            document.getElementById('kpiReviews').innerText = reviews;
-            document.getElementById('recordCount').innerText = `Mostrando ${filteredData.length} registros`;
+            document.getElementById('kpiRevisados').innerText = totalVehiculosRevisados;
+            document.getElementById('kpiNoRevisados').innerText = noRevisados > 0 ? noRevisados : 0;
+            document.getElementById('recordCount').innerText = `Mostrando ${filteredData.length} registros (${totalVehiculos} vehículos involucrados)`;
 
             // 2. Tabla (Virtualizada simple: solo renderizo los primeros 100 para velocidad)
             const tbody = document.getElementById('tableBody');
@@ -727,25 +1041,51 @@
             if (subset.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500">No se encontraron datos coincidenes</td></tr>`;
             } else {
-                tbody.innerHTML = subset.map(d => {
-                    const isReview = String(d.ANTIDROGA).toUpperCase().includes('SI');
+                tbody.innerHTML = subset.map((d, index) => {
+                    const info = d.ANTIDROGA_INFO;
+                    let statusLabel = '';
+
+                    if (info.revisados === 0) {
+                        statusLabel = `<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700 text-[9px] font-bold">NO REVISÓ</span>`;
+                    } else if (info.revisados < info.total) {
+                        statusLabel = `<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-[9px] font-bold">${info.revisados}/${info.total} REV.</span>`;
+                    } else {
+                        statusLabel = `<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-red-500/10 text-red-500 border border-red-500/20 text-[9px] font-bold">REVISADO</span>`;
+                    }
+
                     return `
                     <tr class="hover:bg-slate-800 transition group border-b border-slate-800/50">
-                        <td class="p-4 font-bold text-blue-400 group-hover:text-blue-300">
-                            ${d.CLIENTE}
-                            <div class="text-[9px] text-slate-600 font-normal uppercase tracking-wide mt-1 truncate max-w-[150px]" title="${d._sourceFile}">
-                                ${d._sourceFile || ''}
+                        <td class="p-4 font-bold text-blue-400 group-hover:text-blue-300 sticky left-0 bg-slate-900 group-hover:bg-slate-800 z-10 transition-colors">
+                            <span class="truncate block max-w-[180px]">${d.CLIENTE}</span>
+                            <div class="text-[9px] text-slate-600 font-normal uppercase mt-0.5">
+                                ${d.RIF || 'Sin RIF'}
                             </div>
                         </td>
-                        <td class="p-4 text-slate-400 font-mono text-xs">${d.FECHA}</td>
-                        <td class="p-4 text-slate-300 font-mono text-xs tracking-wider">${d.REFERENCIA}</td>
-                        <td class="p-4 text-slate-300 font-mono text-xs">${d.CONTROL || '-'}</td>
-                        <td class="p-4 text-slate-400 text-xs uppercase">${d.CHOFER || '-'}</td>
+                        <td class="p-4 text-slate-400 font-mono text-[10px] whitespace-nowrap">
+                            ${d.FECHA_LLEGADA || d.FECHA}
+                        </td>
+                        <td class="p-4 text-slate-300 text-[10px]">
+                            <div class="font-bold text-slate-200">D: ${d.DUA || '-'}</div>
+                            <div class="text-slate-600 font-mono mt-0.5">M: ${d.MANIFIESTO || '-'}</div>
+                        </td>
+                        <td class="p-4 text-slate-300 font-mono text-[10px] tracking-wider uppercase">${d.REFERENCIA || '-'}</td>
+                        <td class="p-4 text-slate-400 text-[10px] uppercase">
+                            <div class="font-bold text-slate-300">${d.PLACA || '-'}</div>
+                            <div class="text-[9px] mt-0.5">${d.CONDUCTOR || '-'}</div>
+                        </td>
+                        <td class="p-4 text-slate-400 text-[10px] max-w-[150px] truncate" title="${d.MERCANCIA}">
+                            ${d.MERCANCIA || '-'}
+                        </td>
                         <td class="p-4 text-center">
-                            ${isReview
-                            ? `<span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-red-500/10 text-red-500 border border-red-500/20 text-[10px] font-bold uppercase">REVISADO</span>`
-                            : `<span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-green-500/10 text-green-500 border border-green-500/20 text-[10px] font-bold uppercase">LIBRE</span>`
-                        }
+                            ${statusLabel}
+                        </td>
+                        <td class="p-4 text-center">
+                            <button onclick="showDetail(${index})" class="p-2 hover:bg-blue-600/20 text-blue-500 rounded-lg transition-all active:scale-90">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
                         </td>
                     </tr>
                 `}).join('');
@@ -755,12 +1095,67 @@
             updateChart();
         }
 
+        function showDetail(index) {
+            const data = filteredData.slice(0, 100)[index]; // Mismo slice que la tabla
+            if (!data) return;
+
+            const modal = document.getElementById('detailModal');
+            document.getElementById('detailClient').innerText = data.CLIENTE;
+            document.getElementById('detailReference').innerText = data.REFERENCIA || 'SIN REFERENCIA';
+
+            const isRed = data.ANTIDROGA_INFO.revisados > 0;
+            const iconContainer = document.getElementById('detailStatusIcon');
+            iconContainer.className = `p-3 rounded-2xl shadow-lg ${isRed ? 'bg-red-600 shadow-red-600/20' : 'bg-green-600 shadow-green-600/20'}`;
+            iconContainer.innerHTML = isRed ?
+                `<svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>` :
+                `<svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+
+            const renderField = (label, val) => `
+                <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                    <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">${label}</p>
+                    <p class="text-sm text-slate-100 font-medium">${val || '-'}</p>
+                </div>
+            `;
+
+            document.getElementById('groupLogistica').innerHTML =
+                renderField('Mes', data.MES) +
+                renderField('Fecha Llegada', data.FECHA_LLEGADA) +
+                renderField('Fecha Salida', data.FECHA_SALIDA) +
+                renderField('Gandola', data.GANDOLA) +
+                renderField('Placa', data.PLACA) +
+                renderField('Conductor', data.CONDUCTOR);
+
+            document.getElementById('groupDocumentacion').innerHTML =
+                renderField('RIF', data.RIF) +
+                renderField('DUA', data.DUA) +
+                renderField('Aduana', data.ADUANA) +
+                renderField('Carta de Porte', data.CARTA_PORTE) +
+                renderField('Manifiesto Int.', data.MANIFIESTO) +
+                renderField('No. Factura', data.FACTURA) +
+                renderField('Certificado Origen', data.CERTIFICADO);
+
+            document.getElementById('groupOperacion').innerHTML =
+                renderField('Mercancía', data.MERCANCIA) +
+                renderField('Comex', data.COMEX) +
+                renderField('Antidroga', `${data.ANTIDROGA_INFO.revisados} / ${data.ANTIDROGA_INFO.total} Revisados`) +
+                renderField('Operación Adicional', data.OPERACION_ADICIONAL) +
+                renderField('Gastos Adicionales', data.GASTOS) +
+                renderField('Fuente de Datos', data._sourceFile);
+
+            modal.classList.remove('hidden');
+        }
+
+        function hideDetail() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
         function updateChart() {
             const ctx = document.getElementById('mainChart').getContext('2d');
 
-            // Agrupar
+            // Agrupar sumando la cantidad de repeticiones (operaciones en el excel)
             const counts = {};
-            filteredData.forEach(d => { counts[d.CLIENTE] = (counts[d.CLIENTE] || 0) + 1; });
+            filteredData.forEach(d => {
+                counts[d.CLIENTE] = (counts[d.CLIENTE] || 0) + 1;
+            });
 
             // Top 10
             const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
