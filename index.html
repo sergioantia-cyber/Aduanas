@@ -256,12 +256,28 @@
                 <div class="lg:col-span-8 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Volumen por Cliente</h3>
-                        <span
-                            class="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded border border-slate-700">Top
-                            10 Activos</span>
+                        <div class="flex items-center gap-2">
+                            <span id="chartRangeLabel"
+                                class="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded border border-slate-700">Top
+                                5</span>
+                            <button onclick="toggleChartExpand()" id="expandBtn"
+                                class="bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 p-1.5 rounded-lg transition-all border border-blue-500/20 active:scale-90"
+                                title="Desplegar/Replegar">
+                                <svg id="expandIcon" xmlns="http://www.w3.org/2000/svg"
+                                    class="h-4 w-4 transition-transform duration-300" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex-grow relative h-64 w-full">
-                        <canvas id="mainChart"></canvas>
+                    <div id="chartScrollContainer"
+                        class="flex-grow relative w-full overflow-y-auto custom-scrollbar transition-all duration-500 ease-in-out"
+                        style="height: 180px;">
+                        <div id="chartContainer" style="height: 180px;">
+                            <canvas id="mainChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
@@ -597,6 +613,7 @@
         let rawData = [];
         let filteredData = [];
         let myChart = null;
+        let isChartExpanded = false;
 
         // Variables temporales para la gestión de carga
         let tempUploadData = [];
@@ -809,7 +826,11 @@
 
                                 return {
                                     MES: row[findKey('ME 8')] || row[findKey('MES')] || '',
-                                    CLIENTE: String(row[findKey('CLIENTE')] || row[findKey('IMPORTADOR')] || row[findKey('NOMB')] || 'S/N').toUpperCase().trim(),
+                                    CLIENTE: String(row[findKey('CLIENTE')] || row[findKey('IMPORTADOR')] || row[findKey('NOMB')] || 'S/N')
+                                        .toUpperCase()
+                                        .replace(/[\.,]/g, '') // Elimina puntos y comas
+                                        .replace(/\s+/g, ' ')  // Colapsa múltiples espacios
+                                        .trim(),
                                     RIF: row[findKey('RIF')] || '',
                                     DUA: row[findKey('DUA')] || row[findKey('CONTROL')] || '',
                                     ADUANA: row[findKey('ADUANA')] || 'GENERAL',
@@ -999,7 +1020,11 @@
             const [y, m, d] = fechaInput.split('-');
 
             const newRecord = {
-                CLIENTE: document.getElementById('m_cliente').value.toUpperCase(),
+                CLIENTE: document.getElementById('m_cliente').value
+                    .toUpperCase()
+                    .replace(/[\.,]/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim(),
                 FECHA: `${d}/${m}/${y}`,
                 REFERENCIA: document.getElementById('m_referencia').value.toUpperCase() || '',
                 CONTROL: document.getElementById('m_control').value.toUpperCase() || '',
@@ -1058,23 +1083,23 @@
                         <td class="p-4 font-bold text-blue-400 group-hover:text-blue-300 sticky left-0 bg-slate-900 group-hover:bg-slate-800 z-10 transition-colors">
                             <span class="truncate block max-w-[180px]">${d.CLIENTE}</span>
                             <div class="text-[9px] text-slate-600 font-normal uppercase mt-0.5">
-                                ${d.RIF || 'Sin RIF'}
+                                ${d.RIF || 'N/A'}
                             </div>
                         </td>
                         <td class="p-4 text-slate-400 font-mono text-[10px] whitespace-nowrap">
                             ${d.FECHA_LLEGADA || d.FECHA}
                         </td>
                         <td class="p-4 text-slate-300 text-[10px]">
-                            <div class="font-bold text-slate-200">D: ${d.DUA || '-'}</div>
-                            <div class="text-slate-600 font-mono mt-0.5">M: ${d.MANIFIESTO || '-'}</div>
+                            <div class="font-bold text-slate-200">D: ${d.DUA || 'N/A'}</div>
+                            <div class="text-slate-600 font-mono mt-0.5">M: ${d.MANIFIESTO || 'N/A'}</div>
                         </td>
-                        <td class="p-4 text-slate-300 font-mono text-[10px] tracking-wider uppercase">${d.REFERENCIA || '-'}</td>
+                        <td class="p-4 text-slate-300 font-mono text-[10px] tracking-wider uppercase">${d.REFERENCIA || 'N/A'}</td>
                         <td class="p-4 text-slate-400 text-[10px] uppercase">
-                            <div class="font-bold text-slate-300">${d.PLACA || '-'}</div>
-                            <div class="text-[9px] mt-0.5">${d.CONDUCTOR || '-'}</div>
+                            <div class="font-bold text-slate-300">${d.PLACA || 'N/A'}</div>
+                            <div class="text-[9px] mt-0.5">${d.CONDUCTOR || 'N/A'}</div>
                         </td>
                         <td class="p-4 text-slate-400 text-[10px] max-w-[150px] truncate" title="${d.MERCANCIA}">
-                            ${d.MERCANCIA || '-'}
+                            ${d.MERCANCIA || 'N/A'}
                         </td>
                         <td class="p-4 text-center">
                             ${statusLabel}
@@ -1113,7 +1138,7 @@
             const renderField = (label, val) => `
                 <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
                     <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">${label}</p>
-                    <p class="text-sm text-slate-100 font-medium">${val || '-'}</p>
+                    <p class="text-sm text-slate-100 font-medium">${val || 'N/A'}</p>
                 </div>
             `;
 
@@ -1148,6 +1173,28 @@
         function hideDetail() {
             document.getElementById('detailModal').classList.add('hidden');
         }
+        function toggleChartExpand() {
+            isChartExpanded = !isChartExpanded;
+            const icon = document.getElementById('expandIcon');
+            const container = document.getElementById('chartScrollContainer');
+            const label = document.getElementById('chartRangeLabel');
+
+            if (isChartExpanded) {
+                icon.style.transform = 'rotate(180deg)';
+                container.style.height = '450px';
+                label.innerText = 'Todos los Clientes';
+                label.classList.replace('text-slate-400', 'text-blue-400');
+            } else {
+                icon.style.transform = 'rotate(0deg)';
+                container.style.height = '180px';
+                label.innerText = 'Top 5';
+                label.classList.replace('text-blue-400', 'text-slate-400');
+            }
+
+            updateChart();
+            showToast(isChartExpanded ? "📂 Vista expandida" : "📁 Vista minimalista");
+        }
+
         function updateChart() {
             const ctx = document.getElementById('mainChart').getContext('2d');
 
@@ -1157,8 +1204,16 @@
                 counts[d.CLIENTE] = (counts[d.CLIENTE] || 0) + 1;
             });
 
-            // Top 10
-            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            let sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+            if (!isChartExpanded) {
+                sorted = sorted.slice(0, 5);
+            }
+
+            // Ajustar altura del canvas dinámicamente
+            const barHeight = 35;
+            const calculatedHeight = Math.max(isChartExpanded ? 400 : 180, sorted.length * barHeight);
+            document.getElementById('chartContainer').style.height = calculatedHeight + 'px';
 
             if (myChart) myChart.destroy();
 
@@ -1171,18 +1226,45 @@
                         data: sorted.map(x => x[1]),
                         backgroundColor: '#3b82f6',
                         hoverBackgroundColor: '#60a5fa',
-                        borderRadius: 4,
-                        barThickness: 20
+                        borderRadius: 6,
+                        barThickness: 18
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     indexAxis: 'y',
-                    plugins: { legend: { display: false } },
+                    animation: {
+                        duration: 700,
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleFont: { size: 12, weight: 'bold' },
+                            bodyFont: { size: 11 },
+                            padding: 10,
+                            borderColor: '#334155',
+                            borderWidth: 1
+                        }
+                    },
                     scales: {
-                        x: { grid: { color: '#1e293b' }, ticks: { color: '#64748b' } },
-                        y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10, weight: 'bold' } } }
+                        x: {
+                            grid: { color: '#1e293b', drawBorder: false },
+                            ticks: { color: '#64748b', font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: {
+                                color: '#94a3b8',
+                                font: { size: 10, weight: '600' },
+                                callback: function (value) {
+                                    const label = this.getLabelForValue(value);
+                                    return label.length > 20 ? label.substr(0, 18) + '..' : label;
+                                }
+                            }
+                        }
                     },
                     onClick: (e, elements) => {
                         if (elements.length > 0) {
