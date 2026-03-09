@@ -394,15 +394,28 @@
                     <!-- Periodo y Resumen -->
                     <div
                         class="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50 flex flex-col md:flex-row justify-between items-center gap-4 print:border-black print:bg-gray-100">
-                        <div>
-                            <p
-                                class="text-[10px] uppercase text-slate-400 font-bold tracking-wider mb-1 print:text-black">
-                                Período de Liquidación</p>
-                            <h4 class="text-lg font-bold text-white print:text-black" id="billPeriod">Desde -- hasta --
-                            </h4>
+                        <!-- Filtros independientes -->
+                        <div class="flex flex-col gap-2 w-full md:w-auto print:hidden">
+                            <p class="text-[10px] uppercase text-slate-400 font-bold tracking-wider mb-1">
+                                Filtrar período a liquidar</p>
+                            <div class="flex items-center gap-2">
+                                <input type="date" id="billDateStart" onchange="updateBillingTotals()"
+                                    class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500 transition w-32">
+                                <span class="text-slate-500 font-bold text-xs">-</span>
+                                <input type="date" id="billDateEnd" onchange="updateBillingTotals()"
+                                    class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500 transition w-32">
+                            </div>
                         </div>
+
+                        <!-- Texto de impresion (Solo en PDF) -->
+                        <div class="hidden print:block text-left w-full">
+                            <p class="text-[10px] uppercase text-black font-bold tracking-wider mb-1">
+                                Período de Liquidación</p>
+                            <h4 class="text-lg font-bold text-black" id="billPeriodPrint">Desde -- hasta --</h4>
+                        </div>
+
                         <div
-                            class="bg-slate-950 p-4 rounded-lg border border-slate-800 text-center min-w-[150px] print:bg-white print:border-black">
+                            class="bg-slate-950 p-4 rounded-lg border border-slate-800 text-center min-w-[150px] print:bg-white print:border-black w-full md:w-auto">
                             <p class="text-[10px] uppercase text-slate-400 font-bold mb-1 print:text-black">Total de
                                 Vehículos</p>
                             <p class="text-3xl font-black text-indigo-400 print:text-black" id="billVehicleCount">0</p>
@@ -444,7 +457,8 @@
                                     <td
                                         class="p-4 text-right text-white font-bold text-lg tabular-nums print:text-black">
                                         <span class="text-slate-500 text-sm print:hidden mr-1">$</span><span
-                                            id="totAlmacenadora">0.00</span></td>
+                                            id="totAlmacenadora">0.00</span>
+                                    </td>
                                 </tr>
 
                                 <!-- Resguardo -->
@@ -468,7 +482,8 @@
                                     <td
                                         class="p-4 text-right text-white font-bold text-lg tabular-nums print:text-black">
                                         <span class="text-slate-500 text-sm print:hidden mr-1">$</span><span
-                                            id="totResguardo">0.00</span></td>
+                                            id="totResguardo">0.00</span>
+                                    </td>
                                 </tr>
 
                                 <!-- Antidrogas -->
@@ -492,7 +507,8 @@
                                     <td
                                         class="p-4 text-right text-white font-bold text-lg tabular-nums print:text-black">
                                         <span class="text-slate-500 text-sm print:hidden mr-1">$</span><span
-                                            id="totAntidrogas">0.00</span></td>
+                                            id="totAntidrogas">0.00</span>
+                                    </td>
                                 </tr>
 
                                 <!-- SENIAT -->
@@ -517,7 +533,8 @@
                                     <td
                                         class="p-4 text-right text-white font-bold text-lg tabular-nums print:text-black border-b print:border-gray-400 border-slate-800/50">
                                         <span class="text-slate-500 text-sm print:hidden mr-1">$</span><span
-                                            id="totSeniat">0.00</span></td>
+                                            id="totSeniat">0.00</span>
+                                    </td>
                                 </tr>
 
                                 <!-- GRAN TOTAL -->
@@ -1372,25 +1389,13 @@
                 return showToast("⚠️ No hay datos filtrados para generar liquidación");
             }
 
-            // Fechas del periodo
+            // Sincronizar fechas base si hay filtro global, pero dejarlos limpios para elegir
             const dStart = document.getElementById('dateStart').value;
             const dEnd = document.getElementById('dateEnd').value;
-            let periodText = 'Visualización Completa';
-            if (dStart && dEnd) periodText = `Desde ${dStart.split('-').reverse().join('/')} hasta ${dEnd.split('-').reverse().join('/')}`;
-            else if (dStart) periodText = `Desde ${dStart.split('-').reverse().join('/')}`;
-            else if (dEnd) periodText = `Hasta ${dEnd.split('-').reverse().join('/')}`;
+            document.getElementById('billDateStart').value = dStart;
+            document.getElementById('billDateEnd').value = dEnd;
 
-            document.getElementById('billPeriod').innerText = periodText;
-
-            // Vehículos totales
-            const vehicleCount = filteredData.length;
-            document.getElementById('billVehicleCount').innerText = vehicleCount;
-
-            // Cantidades visuales a la tabla
-            const qtyNodes = document.querySelectorAll('.bill-qty');
-            qtyNodes.forEach(node => { node.innerText = vehicleCount; });
-
-            // Calcular
+            // Calcular y establecer vehículo dinámicamente con las fechas
             updateBillingTotals();
 
             // Mostrar modal
@@ -1402,8 +1407,51 @@
         }
 
         function updateBillingTotals() {
-            const count = parseInt(document.getElementById('billVehicleCount').innerText) || 0;
+            // Evaluamos la selección de fechas *independiente*
+            const dStart = document.getElementById('billDateStart').value;
+            const dEnd = document.getElementById('billDateEnd').value;
 
+            let periodPrintText = 'Histórico Completo';
+            let startObj = null;
+            let endObj = null;
+
+            if (dStart) {
+                const parts = dStart.split('-');
+                startObj = new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0);
+            }
+            if (dEnd) {
+                const parts = dEnd.split('-');
+                endObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                endObj.setHours(23, 59, 59, 999);
+            }
+
+            if (dStart && dEnd) periodPrintText = `Desde ${dStart.split('-').reverse().join('/')} hasta ${dEnd.split('-').reverse().join('/')}`;
+            else if (dStart) periodPrintText = `Desde ${dStart.split('-').reverse().join('/')}`;
+            else if (dEnd) periodPrintText = `Hasta ${dEnd.split('-').reverse().join('/')}`;
+
+            document.getElementById('billPeriodPrint').innerText = periodPrintText;
+
+            // Filtramos únicamente sobre todo "rawData" tomando en cuenta solo las fechas de liquidación
+            let validVehicles = rawData;
+
+            if (startObj || endObj) {
+                validVehicles = rawData.filter(d => {
+                    if (!d._dateObj) return false;
+                    if (startObj && d._dateObj < startObj) return false;
+                    if (endObj && d._dateObj > endObj) return false;
+                    return true;
+                });
+            }
+
+            // Calcular
+            const count = validVehicles.length;
+            document.getElementById('billVehicleCount').innerText = count;
+
+            // Cantidades visuales a la tabla
+            const qtyNodes = document.querySelectorAll('.bill-qty');
+            qtyNodes.forEach(node => { node.innerText = count; });
+
+            // Tarifas
             const rAlmacen = parseFloat(document.getElementById('rateAlmacenadora').value) || 0;
             const rResguardo = parseFloat(document.getElementById('rateResguardo').value) || 0;
             const rAntidrogas = parseFloat(document.getElementById('rateAntidrogas').value) || 0;
@@ -1426,6 +1474,8 @@
         }
 
         function printBilling() {
+            // Refrescar cálculo por si acaso alguien escribió de más en el input y queremos forzar focus out 
+            updateBillingTotals();
             // Un truco rápido para asegurar que la página principal se oculte temporalmente
             // El Tailwind class 'print:hidden' que se ha agregado en partes clave ayudará sin modificar JS general, pero para asegurarnos:
             const sysMain = document.body.children[0]; // El header etc.
