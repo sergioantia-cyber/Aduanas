@@ -206,6 +206,16 @@
                     Excel
                 </button>
 
+                <button onclick="showBillingModal()"
+                    class="bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 border border-slate-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Liquidación
+                </button>
+
                 <button onclick="resetFilters()"
                     class="bg-slate-800 hover:bg-red-900/30 text-slate-400 hover:text-red-400 px-3 py-2.5 rounded-lg transition-all border border-slate-700"
                     title="Restablecer Todo">
@@ -348,257 +358,467 @@
                                 <th class="p-4 border-b border-slate-800">Mercancía</th>
                                 <th class="p-4 border-b border-slate-800 text-center">Estatus</th>
                                 <th class="p-4 border-b border-slate-800 text-center">Detalle</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody" class="divide-y divide-slate-800/50 text-xs">
-                            <!-- Rows injected via JS -->
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast"
-        class="fixed bottom-8 right-8 bg-blue-600 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-500 font-bold z-50 flex items-center gap-3 border border-blue-400/30">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span id="toastMsg">Notificación</span>
-    </div>
+        <!-- MODAL Liquidación / Facturación Semanal (NUEVO) -->
+        <div id="billingModal"
+            class="fixed inset-0 z-[80] hidden p-4 md:p-0 print:block print:relative print:inset-auto print:z-auto print:bg-white print:text-black">
+            <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-md transition-opacity print:hidden"
+                onclick="hideBillingModal()"></div>
+            <div
+                class="relative top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl overflow-hidden animate-fade-in-up print:transform-none print:top-auto print:left-auto print:border-none print:shadow-none print:w-full print:max-w-none print:bg-white">
 
-    <!-- MODAL MANUAL ENTRY -->
-    <div id="manualModal" class="fixed inset-0 z-50 hidden">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" onclick="toggleModal(false)">
-        </div>
-
-        <!-- Content -->
-        <div
-            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl p-8">
-            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                <span class="bg-blue-600 p-2 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                </span>
-                Nuevo Registro Manual
-            </h3>
-
-            <form onsubmit="addManualRecord(event)" class="space-y-4">
-                <div class="grid grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">Fecha Llegada</label>
-                        <input type="date" id="m_fecha" required
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">Fecha Salida</label>
-                        <input type="date" id="m_fecha_salida"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">Cliente /
-                            Importador</label>
-                        <input type="text" id="m_cliente" required
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-4 gap-3">
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">RIF</label>
-                        <input type="text" id="m_rif"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">DUA / CONTROL</label>
-                        <input type="text" id="m_dua"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">ADUANA</label>
-                        <input type="text" id="m_aduana" placeholder="Ej: TIENDITAS"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">MERCANCÍA</label>
-                        <input type="text" id="m_mercancia"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-4 gap-3">
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">CARTA DE PORTE</label>
-                        <input type="text" id="m_carta_porte"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">MANIFIESTO INT.</label>
-                        <input type="text" id="m_manifiesto"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">NO. FACTURA</label>
-                        <input type="text" id="m_factura"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">CERT. ORIGEN</label>
-                        <input type="text" id="m_certificado"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-4 gap-3">
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">COMEX</label>
-                        <input type="text" id="m_comex"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">OP. ADICIONAL</label>
-                        <input type="text" id="m_operacion_adicional"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">GASTOS ADIC.</label>
-                        <input type="text" id="m_gastos"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">REFERENCIA</label>
-                        <input type="text" id="m_referencia"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">GANDOLA</label>
-                        <input type="text" id="m_gandola"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">CONDUCTOR</label>
-                        <input type="text" id="m_chofer"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">PLACA</label>
-                        <input type="text" id="m_placa"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
-                    </div>
-                </div>
-
-                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-300">¿Revisión Antidroga?</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="m_antidroga" class="sr-only peer">
-                        <div
-                            class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600">
+                <!-- Header (Hides in Print, custom print header comes inside) -->
+                <div
+                    class="bg-indigo-600/20 p-6 border-b border-indigo-500/30 print:border-black print:bg-white print:border-b-2">
+                    <h3 class="text-xl font-bold text-white flex items-center justify-between print:text-black">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-indigo-600 p-2 rounded-lg shadow-lg shadow-indigo-500/20 print:hidden">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </span>
+                            Facturación y Liquidación de Entes
                         </div>
-                        <span class="ml-3 text-xs font-medium text-slate-400 peer-checked:text-red-400">SI</span>
-                    </label>
+                    </h3>
+                    <p class="text-indigo-200 text-sm mt-2 md:ml-14 font-medium print:hidden">Cálculo de deudas basado
+                        en el período actual visualizado en pantalla.</p>
                 </div>
 
-                <div class="flex gap-3 pt-2">
-                    <button type="button" onclick="toggleModal(false)"
-                        class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-sm transition">Cancelar</button>
-                    <button type="submit"
-                        class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 transition">Guardar
-                        Registro</button>
+                <div class="p-6 md:p-8 space-y-6 print:p-2">
+
+                    <!-- Periodo y Resumen -->
+                    <div
+                        class="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50 flex flex-col md:flex-row justify-between items-center gap-4 print:border-black print:bg-gray-100">
+                        <div>
+                            <p
+                                class="text-[10px] uppercase text-slate-400 font-bold tracking-wider mb-1 print:text-black">
+                                Período de Liquidación</p>
+                            <h4 class="text-lg font-bold text-white print:text-black" id="billPeriod">Desde -- hasta --
+                            </h4>
+                        </div>
+                        <div
+                            class="bg-slate-950 p-4 rounded-lg border border-slate-800 text-center min-w-[150px] print:bg-white print:border-black">
+                            <p class="text-[10px] uppercase text-slate-400 font-bold mb-1 print:text-black">Total de
+                                Vehículos</p>
+                            <p class="text-3xl font-black text-indigo-400 print:text-black" id="billVehicleCount">0</p>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Desglose -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr
+                                    class="bg-slate-800/80 text-xs uppercase text-slate-400 tracking-wider print:bg-transparent print:text-black print:border-b-2 print:border-black">
+                                    <th class="p-4 font-bold rounded-tl-xl w-1/4">Cobrador / Ente</th>
+                                    <th class="p-4 font-bold text-center w-1/4">Vehículos</th>
+                                    <th class="p-4 font-bold text-center w-1/4">Tarifa por Vehículo</th>
+                                    <th class="p-4 font-bold text-right rounded-tr-xl w-1/4">Total a Pagar</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm font-medium print:text-black print:border-black"
+                                id="billingTableBody">
+                                <!-- Almacenadora -->
+                                <tr
+                                    class="border-b border-slate-800/50 hover:bg-slate-800/20 transition print:border-b print:border-gray-400">
+                                    <td class="p-4 text-slate-200 font-bold flex items-center gap-2 print:text-black">
+                                        <div class="w-2 h-2 rounded-full bg-blue-500 print:hidden"></div>
+                                        Almacenadora
+                                    </td>
+                                    <td class="p-4 text-center text-slate-300 font-mono bill-qty print:text-black">0
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <div class="flex items-center justify-center gap-1 text-slate-200">
+                                            <span class="text-slate-500 font-bold print:hidden">$</span>
+                                            <span class="text-black font-bold hidden print:inline">$</span>
+                                            <input type="number" id="rateAlmacenadora" value="60"
+                                                oninput="updateBillingTotals()"
+                                                class="w-20 bg-slate-950 border border-slate-700 rounded p-1 text-center font-bold text-blue-400 focus:outline-none focus:border-blue-500 print:bg-transparent print:border-none print:text-black print:p-0">
+                                        </div>
+                                    </td>
+                                    <td
+                                        class="p-4 text-right text-white font-bold text-lg tabular-nums print:text-black">
+                                        <span class="text-slate-500 text-sm print:hidden mr-1">$</span><span
+                                            id="totAlmacenadora">0.00</span></td>
+                                </tr>
+
+                                <!-- Resguardo -->
+                                <tr
+                                    class="border-b border-slate-800/50 hover:bg-slate-800/20 transition print:border-b print:border-gray-400">
+                                    <td class="p-4 text-slate-200 font-bold flex items-center gap-2 print:text-black">
+                                        <div class="w-2 h-2 rounded-full bg-red-500 print:hidden"></div>
+                                        Resguardo
+                                    </td>
+                                    <td class="p-4 text-center text-slate-300 font-mono bill-qty print:text-black">0
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <div class="flex items-center justify-center gap-1 text-slate-200">
+                                            <span class="text-slate-500 font-bold print:hidden">$</span>
+                                            <span class="text-black font-bold hidden print:inline">$</span>
+                                            <input type="number" id="rateResguardo" value="10"
+                                                oninput="updateBillingTotals()"
+                                                class="w-20 bg-slate-950 border border-slate-700 rounded p-1 text-center font-bold text-red-400 focus:outline-none focus:border-red-500 print:bg-transparent print:border-none print:text-black print:p-0">
+                                        </div>
+                                    </td>
+                                    <td
+                                        class="p-4 text-right text-white font-bold text-lg tabular-nums print:text-black">
+                                        <span class="text-slate-500 text-sm print:hidden mr-1">$</span><span
+                                            id="totResguardo">0.00</span></td>
+                                </tr>
+
+                                <!-- Antidrogas -->
+                                <tr
+                                    class="border-b border-slate-800/50 hover:bg-slate-800/20 transition print:border-b print:border-gray-400">
+                                    <td class="p-4 text-slate-200 font-bold flex items-center gap-2 print:text-black">
+                                        <div class="w-2 h-2 rounded-full bg-emerald-500 print:hidden"></div>
+                                        Antidrogas
+                                    </td>
+                                    <td class="p-4 text-center text-slate-300 font-mono bill-qty print:text-black">0
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <div class="flex items-center justify-center gap-1 text-slate-200">
+                                            <span class="text-slate-500 font-bold print:hidden">$</span>
+                                            <span class="text-black font-bold hidden print:inline">$</span>
+                                            <input type="number" id="rateAntidrogas" value="15"
+                                                oninput="updateBillingTotals()"
+                                                class="w-20 bg-slate-950 border border-slate-700 rounded p-1 text-center font-bold text-emerald-400 focus:outline-none focus:border-emerald-500 print:bg-transparent print:border-none print:text-black print:p-0">
+                                        </div>
+                                    </td>
+                                    <td
+                                        class="p-4 text-right text-white font-bold text-lg tabular-nums print:text-black">
+                                        <span class="text-slate-500 text-sm print:hidden mr-1">$</span><span
+                                            id="totAntidrogas">0.00</span></td>
+                                </tr>
+
+                                <!-- SENIAT -->
+                                <tr class="hover:bg-slate-800/20 transition">
+                                    <td
+                                        class="p-4 text-slate-200 font-bold flex items-center gap-2 print:text-black border-b print:border-gray-400 border-slate-800/50">
+                                        <div class="w-2 h-2 rounded-full bg-amber-500 print:hidden"></div>
+                                        SENIAT
+                                    </td>
+                                    <td
+                                        class="p-4 text-center text-slate-300 font-mono bill-qty print:text-black border-b print:border-gray-400 border-slate-800/50">
+                                        0</td>
+                                    <td class="p-4 text-center border-b print:border-gray-400 border-slate-800/50">
+                                        <div class="flex items-center justify-center gap-1 text-slate-200">
+                                            <span class="text-slate-500 font-bold print:hidden">$</span>
+                                            <span class="text-black font-bold hidden print:inline">$</span>
+                                            <input type="number" id="rateSeniat" value="20"
+                                                oninput="updateBillingTotals()"
+                                                class="w-20 bg-slate-950 border border-slate-700 rounded p-1 text-center font-bold text-amber-400 focus:outline-none focus:border-amber-500 print:bg-transparent print:border-none print:text-black print:p-0">
+                                        </div>
+                                    </td>
+                                    <td
+                                        class="p-4 text-right text-white font-bold text-lg tabular-nums print:text-black border-b print:border-gray-400 border-slate-800/50">
+                                        <span class="text-slate-500 text-sm print:hidden mr-1">$</span><span
+                                            id="totSeniat">0.00</span></td>
+                                </tr>
+
+                                <!-- GRAN TOTAL -->
+                                <tr class="bg-indigo-900/10 print:bg-gray-100">
+                                    <td colspan="3"
+                                        class="p-5 text-right font-black text-slate-300 uppercase tracking-widest text-xs print:text-black border-t-2 print:border-black border-indigo-500/30">
+                                        Gran Total a Liquidar:
+                                    </td>
+                                    <td
+                                        class="p-5 text-right font-black text-2xl text-indigo-400 tabular-nums print:text-black border-t-2 print:border-black border-indigo-500/30">
+                                        $ <span id="billGrandTotal">0.00</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer Acciones -->
+                    <div class="flex gap-4 pt-4 border-t border-slate-800 print:hidden mt-4">
+                        <button type="button" onclick="hideBillingModal()"
+                            class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold uppercase text-xs tracking-wider transition">Cerrar
+                            Tabulador</button>
+                        <button type="button" onclick="printBilling()"
+                            class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold uppercase text-xs tracking-wider shadow-lg shadow-indigo-600/20 transition flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            Exportar PDF / Imprimir
+                        </button>
+                    </div>
+
+                    <!-- Print Signature lines -->
+                    <div class="hidden print:flex justify-around mt-20 pt-10 px-10 border-t-2 border-black">
+                        <div class="text-center font-bold text-sm">
+                            <p class="border-t border-black px-10 inline-block pt-2">Firma Autorizada</p>
+                        </div>
+                        <div class="text-center font-bold text-sm">
+                            <p class="border-t border-black px-10 inline-block pt-2">Recibe Conforme</p>
+                        </div>
+                    </div>
+
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
 
-    <!-- MODAL DECISIÓN DE CARGA (NUEVO) -->
-    <div id="uploadDecisionModal" class="fixed inset-0 z-[60] hidden">
-        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-md transition-opacity" onclick="cancelUpload()">
+        <!-- TOAST NOTIFICATION -->
+        <div id="toast"
+            class="fixed bottom-8 right-8 bg-blue-600 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-y-24 opacity-0 transition-all duration-500 font-bold z-50 flex items-center gap-3 border border-blue-400/30">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span id="toastMsg">Notificación</span>
         </div>
-        <div
-            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl overflow-hidden animate-fade-in-up">
 
-            <!-- Header -->
-            <div class="bg-slate-800/50 p-6 border-b border-slate-700">
-                <h3 class="text-xl font-bold text-white flex items-center gap-3">
-                    <span class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-500/20">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
+        <!-- MODAL MANUAL ENTRY -->
+        <div id="manualModal" class="fixed inset-0 z-50 hidden">
+            <!-- Backdrop -->
+            <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+                onclick="toggleModal(false)">
+            </div>
+
+            <!-- Content -->
+            <div
+                class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl p-8">
+                <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                    <span class="bg-blue-600 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                     </span>
-                    Gestionar Carga de Archivo
+                    Nuevo Registro Manual
                 </h3>
-                <p class="text-slate-400 text-sm mt-2 ml-14">
-                    Estás subiendo: <strong id="uploadFileName" class="text-white text-base">archivo.xlsx</strong>
-                </p>
-            </div>
 
-            <div class="p-8 space-y-8">
-                <!-- Estado Actual -->
-                <div>
-                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Archivos actualmente en
-                        el sistema:</h4>
-                    <div id="currentFilesList"
-                        class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                        <!-- Injected via JS -->
-                    </div>
-                </div>
-
-                <!-- Opciones de Acción -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Opción 1: Agregar -->
-                    <button onclick="confirmAction('APPEND')"
-                        class="group relative bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 p-4 rounded-xl text-left transition-all hover:shadow-lg hover:shadow-blue-500/10 active:scale-95">
-                        <div class="absolute top-4 right-4 text-slate-600 group-hover:text-blue-400 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 4v16m8-8H4" />
-                            </svg>
+                <form onsubmit="addManualRecord(event)" class="space-y-4">
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">Fecha
+                                Llegada</label>
+                            <input type="date" id="m_fecha" required
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs">
                         </div>
-                        <span class="block text-blue-400 font-bold text-sm uppercase mb-1">Sumar</span>
-                        <span class="text-slate-300 text-xs leading-relaxed">Agregar estos datos a los
-                            existentes.</span>
-                    </button>
-
-                    <!-- Opción 2: Reemplazar Todo -->
-                    <button onclick="confirmAction('REPLACE_ALL')"
-                        class="group relative bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-red-500/50 p-4 rounded-xl text-left transition-all hover:shadow-lg hover:shadow-red-500/10 active:scale-95">
-                        <div class="absolute top-4 right-4 text-slate-600 group-hover:text-red-400 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">Fecha
+                                Salida</label>
+                            <input type="date" id="m_fecha_salida"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs">
                         </div>
-                        <span class="block text-red-400 font-bold text-sm uppercase mb-1">Reemplazar Todo</span>
-                        <span class="text-slate-300 text-xs leading-relaxed">Borrar todo y dejar solo este
-                            archivo.</span>
-                    </button>
-
-                    <!-- Opción 3: Reemplazar Específico -->
-                    <div
-                        class="md:col-span-3 bg-slate-800/30 border border-dashed border-slate-700 rounded-xl p-4 text-center">
-                        <p class="text-slate-400 text-xs">
-                            💡 <span class="text-slate-200 font-bold">Tip:</span> Para reemplazar un archivo específico,
-                            haz clic en el icono <span class="text-red-400 font-bold">♻️</span> junto al nombre del
-                            archivo en la lista de arriba.
-                        </p>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">Cliente /
+                                Importador</label>
+                            <input type="text" id="m_cliente" required
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
                     </div>
-                </div>
-            </div>
 
+                    <div class="grid grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">RIF</label>
+                            <input type="text" id="m_rif"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">DUA /
+                                CONTROL</label>
+                            <input type="text" id="m_dua"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">ADUANA</label>
+                            <input type="text" id="m_aduana" placeholder="Ej: TIENDITAS"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">MERCANCÍA</label>
+                            <input type="text" id="m_mercancia"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">CARTA DE
+                                PORTE</label>
+                            <input type="text" id="m_carta_porte"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">MANIFIESTO
+                                INT.</label>
+                            <input type="text" id="m_manifiesto"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">NO. FACTURA</label>
+                            <input type="text" id="m_factura"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">CERT.
+                                ORIGEN</label>
+                            <input type="text" id="m_certificado"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">COMEX</label>
+                            <input type="text" id="m_comex"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">OP.
+                                ADICIONAL</label>
+                            <input type="text" id="m_operacion_adicional"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">GASTOS
+                                ADIC.</label>
+                            <input type="text" id="m_gastos"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">REFERENCIA</label>
+                            <input type="text" id="m_referencia"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">GANDOLA</label>
+                            <input type="text" id="m_gandola"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">CONDUCTOR</label>
+                            <input type="text" id="m_chofer"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">PLACA</label>
+                            <input type="text" id="m_placa"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-300">¿Revisión Antidroga?</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="m_antidroga" class="sr-only peer">
+                            <div
+                                class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600">
+                            </div>
+                            <span class="ml-3 text-xs font-medium text-slate-400 peer-checked:text-red-400">SI</span>
+                        </label>
+                    </div>
+
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" onclick="toggleModal(false)"
+                            class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-sm transition">Cancelar</button>
+                        <button type="submit"
+                            class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 transition">Guardar
+                            Registro</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
+
+        <!-- MODAL DECISIÓN DE CARGA (NUEVO) -->
+        <div id="uploadDecisionModal" class="fixed inset-0 z-[60] hidden">
+            <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-md transition-opacity" onclick="cancelUpload()">
+            </div>
+            <div
+                class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl overflow-hidden animate-fade-in-up">
+
+                <!-- Header -->
+                <div class="bg-slate-800/50 p-6 border-b border-slate-700">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-3">
+                        <span class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-500/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                        </span>
+                        Gestionar Carga de Archivo
+                    </h3>
+                    <p class="text-slate-400 text-sm mt-2 ml-14">
+                        Estás subiendo: <strong id="uploadFileName" class="text-white text-base">archivo.xlsx</strong>
+                    </p>
+                </div>
+
+                <div class="p-8 space-y-8">
+                    <!-- Estado Actual -->
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Archivos actualmente
+                            en
+                            el sistema:</h4>
+                        <div id="currentFilesList"
+                            class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Opciones de Acción -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Opción 1: Agregar -->
+                        <button onclick="confirmAction('APPEND')"
+                            class="group relative bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 p-4 rounded-xl text-left transition-all hover:shadow-lg hover:shadow-blue-500/10 active:scale-95">
+                            <div
+                                class="absolute top-4 right-4 text-slate-600 group-hover:text-blue-400 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4" />
+                                </svg>
+                            </div>
+                            <span class="block text-blue-400 font-bold text-sm uppercase mb-1">Sumar</span>
+                            <span class="text-slate-300 text-xs leading-relaxed">Agregar estos datos a los
+                                existentes.</span>
+                        </button>
+
+                        <!-- Opción 2: Reemplazar Todo -->
+                        <button onclick="confirmAction('REPLACE_ALL')"
+                            class="group relative bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-red-500/50 p-4 rounded-xl text-left transition-all hover:shadow-lg hover:shadow-red-500/10 active:scale-95">
+                            <div
+                                class="absolute top-4 right-4 text-slate-600 group-hover:text-red-400 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </div>
+                            <span class="block text-red-400 font-bold text-sm uppercase mb-1">Reemplazar Todo</span>
+                            <span class="text-slate-300 text-xs leading-relaxed">Borrar todo y dejar solo este
+                                archivo.</span>
+                        </button>
+
+                        <!-- Opción 3: Reemplazar Específico -->
+                        <div
+                            class="md:col-span-3 bg-slate-800/30 border border-dashed border-slate-700 rounded-xl p-4 text-center">
+                            <p class="text-slate-400 text-xs">
+                                💡 <span class="text-slate-200 font-bold">Tip:</span> Para reemplazar un archivo
+                                específico,
+                                haz clic en el icono <span class="text-red-400 font-bold">♻️</span> junto al nombre del
+                                archivo en la lista de arriba.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
 
     <!-- MODAL CONFIRMACIÓN LIMPIAR (NUEVO) -->
@@ -1144,6 +1364,73 @@
                 loader.classList.add('hidden');
                 ui.classList.remove('hidden');
             }
+        }
+
+        // --- FACTURACIÓN Y LIQUIDACIÓN ---
+        function showBillingModal() {
+            if (filteredData.length === 0) {
+                return showToast("⚠️ No hay datos filtrados para generar liquidación");
+            }
+
+            // Fechas del periodo
+            const dStart = document.getElementById('dateStart').value;
+            const dEnd = document.getElementById('dateEnd').value;
+            let periodText = 'Visualización Completa';
+            if (dStart && dEnd) periodText = `Desde ${dStart.split('-').reverse().join('/')} hasta ${dEnd.split('-').reverse().join('/')}`;
+            else if (dStart) periodText = `Desde ${dStart.split('-').reverse().join('/')}`;
+            else if (dEnd) periodText = `Hasta ${dEnd.split('-').reverse().join('/')}`;
+
+            document.getElementById('billPeriod').innerText = periodText;
+
+            // Vehículos totales
+            const vehicleCount = filteredData.length;
+            document.getElementById('billVehicleCount').innerText = vehicleCount;
+
+            // Cantidades visuales a la tabla
+            const qtyNodes = document.querySelectorAll('.bill-qty');
+            qtyNodes.forEach(node => { node.innerText = vehicleCount; });
+
+            // Calcular
+            updateBillingTotals();
+
+            // Mostrar modal
+            document.getElementById('billingModal').classList.remove('hidden');
+        }
+
+        function hideBillingModal() {
+            document.getElementById('billingModal').classList.add('hidden');
+        }
+
+        function updateBillingTotals() {
+            const count = parseInt(document.getElementById('billVehicleCount').innerText) || 0;
+
+            const rAlmacen = parseFloat(document.getElementById('rateAlmacenadora').value) || 0;
+            const rResguardo = parseFloat(document.getElementById('rateResguardo').value) || 0;
+            const rAntidrogas = parseFloat(document.getElementById('rateAntidrogas').value) || 0;
+            const rSeniat = parseFloat(document.getElementById('rateSeniat').value) || 0;
+
+            const tAlmacen = count * rAlmacen;
+            const tResguardo = count * rResguardo;
+            const tAntidrogas = count * rAntidrogas;
+            const tSeniat = count * rSeniat;
+
+            const format = num => num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            document.getElementById('totAlmacenadora').innerText = format(tAlmacen);
+            document.getElementById('totResguardo').innerText = format(tResguardo);
+            document.getElementById('totAntidrogas').innerText = format(tAntidrogas);
+            document.getElementById('totSeniat').innerText = format(tSeniat);
+
+            const grandTotal = tAlmacen + tResguardo + tAntidrogas + tSeniat;
+            document.getElementById('billGrandTotal').innerText = format(grandTotal);
+        }
+
+        function printBilling() {
+            // Un truco rápido para asegurar que la página principal se oculte temporalmente
+            // El Tailwind class 'print:hidden' que se ha agregado en partes clave ayudará sin modificar JS general, pero para asegurarnos:
+            const sysMain = document.body.children[0]; // El header etc.
+
+            window.print();
         }
 
         // --- SISTEMA MANUAL ---
