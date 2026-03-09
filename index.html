@@ -203,7 +203,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    CSV
+                    Excel
                 </button>
 
                 <button onclick="resetFilters()"
@@ -390,54 +390,128 @@
             </h3>
 
             <form onsubmit="addManualRecord(event)" class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-slate-400 text-xs font-bold uppercase mb-2">Fecha</label>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">Fecha Llegada</label>
                         <input type="date" id="m_fecha" required
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none">
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs">
                     </div>
                     <div>
-                        <label class="block text-slate-400 text-xs font-bold uppercase mb-2">No. C</label>
-                        <input type="text" id="m_control" placeholder="Ej: C-12345"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none">
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">Fecha Salida</label>
+                        <input type="date" id="m_fecha_salida"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">Cliente /
+                            Importador</label>
+                        <input type="text" id="m_cliente" required
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-slate-400 text-xs font-bold uppercase mb-2">Cliente / Importador</label>
-                    <input type="text" id="m_cliente" required placeholder="Nombre de la empresa"
-                        class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none uppercase">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-4 gap-3">
                     <div>
-                        <label class="block text-slate-400 text-xs font-bold uppercase mb-2">Referencia</label>
-                        <input type="text" id="m_referencia" placeholder="Ref. Interna"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none uppercase">
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">RIF</label>
+                        <input type="text" id="m_rif"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
                     </div>
                     <div>
-                        <label class="block text-slate-400 text-xs font-bold uppercase mb-2">Chofer</label>
-                        <input type="text" id="m_chofer" placeholder="Nombre conductor"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none uppercase">
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">DUA / CONTROL</label>
+                        <input type="text" id="m_dua"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">ADUANA</label>
+                        <input type="text" id="m_aduana" placeholder="Ej: TIENDITAS"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">MERCANCÍA</label>
+                        <input type="text" id="m_mercancia"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
                     </div>
                 </div>
 
-                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex items-center justify-between">
-                    <span class="text-sm font-bold text-slate-300">¿Revisión Antidroga?</span>
+                <div class="grid grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">CARTA DE PORTE</label>
+                        <input type="text" id="m_carta_porte"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">MANIFIESTO INT.</label>
+                        <input type="text" id="m_manifiesto"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">NO. FACTURA</label>
+                        <input type="text" id="m_factura"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">CERT. ORIGEN</label>
+                        <input type="text" id="m_certificado"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">COMEX</label>
+                        <input type="text" id="m_comex"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">OP. ADICIONAL</label>
+                        <input type="text" id="m_operacion_adicional"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">GASTOS ADIC.</label>
+                        <input type="text" id="m_gastos"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">REFERENCIA</label>
+                        <input type="text" id="m_referencia"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">GANDOLA</label>
+                        <input type="text" id="m_gandola"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">CONDUCTOR</label>
+                        <input type="text" id="m_chofer"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-[10px] font-bold uppercase mb-1">PLACA</label>
+                        <input type="text" id="m_placa"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:border-blue-500 focus:outline-none text-xs uppercase">
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-300">¿Revisión Antidroga?</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="m_antidroga" class="sr-only peer">
                         <div
-                            class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600">
+                            class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600">
                         </div>
                         <span class="ml-3 text-xs font-medium text-slate-400 peer-checked:text-red-400">SI</span>
                     </label>
                 </div>
 
-                <div class="flex gap-3 pt-4">
+                <div class="flex gap-3 pt-2">
                     <button type="button" onclick="toggleModal(false)"
-                        class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold transition">Cancelar</button>
+                        class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-sm transition">Cancelar</button>
                     <button type="submit"
-                        class="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 transition">Guardar
+                        class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 transition">Guardar
                         Registro</button>
                 </div>
             </form>
@@ -620,6 +694,31 @@
         let tempFileName = "";
 
         // --- SISTEMA DE GESTIÓN DE ESTADO ---
+        function parseAntidroga(rawVal) {
+            const val = String(rawVal || '').toUpperCase().trim();
+            let revisados = 0;
+            let total = 1;
+
+            if (!val || val === 'NO' || val === 'N/A' || val === '0' || val === 'FALSE' || val === 'NULL' || val.includes('NO REVISO')) {
+                revisados = 0;
+                total = 1;
+            } else if (val.includes('/')) {
+                const parts = val.split('/');
+                revisados = parseInt(parts[0]) || 0;
+                total = parseInt(parts[1]) || revisados || 1;
+            } else if (val.includes('SI') || val === 'X' || val === 'S' || (val.includes('REVISO') && !val.includes('NO REVISO'))) {
+                revisados = 1;
+                total = 1;
+            } else if (!isNaN(val) && val !== '') {
+                revisados = parseInt(val);
+                total = revisados;
+            } else {
+                revisados = (val.includes('REVISO') || val.length > 3) ? 1 : 0;
+                total = 1;
+            }
+            return { revisados, total, text: val };
+        }
+
         async function init() {
             console.log("Sistema iniciado. Esperando carga de archivo.");
 
@@ -629,6 +728,39 @@
                     .then(() => console.log("PWA: Modo Offline Activo"))
                     .catch(e => console.error("PWA Error:", e));
             }
+
+            // Recuperar guardado automático
+            try {
+                const stored = localStorage.getItem('aduanasDataBackup');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed && parsed.length > 0) {
+                        rawData = parsed.map(d => ({
+                            ...d,
+                            _dateObj: d._dateObj ? new Date(d._dateObj) : new Date()
+                        }));
+
+                        document.getElementById('welcomeView').classList.add('opacity-0', 'pointer-events-none', 'scale-110');
+                        setTimeout(() => {
+                            document.getElementById('welcomeView').classList.add('hidden');
+                            document.getElementById('mainHeader').classList.remove('opacity-0', 'pointer-events-none');
+                            document.getElementById('dashboardContent').classList.remove('opacity-0', 'pointer-events-none', 'translate-y-8');
+                        }, 700);
+
+                        const validDates = rawData.map(d => d._dateObj).filter(d => d);
+                        if (validDates.length > 0) {
+                            const min = new Date(Math.min(...validDates));
+                            const max = new Date(Math.max(...validDates));
+                            const formatDate = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                            document.getElementById('dateStart').value = formatDate(min);
+                            document.getElementById('dateEnd').value = formatDate(max);
+                        }
+
+                        applyFilters();
+                        setTimeout(() => showToast(`📊 Sesión anterior recuperada (${rawData.length} registros)`), 800);
+                    }
+                }
+            } catch (e) { console.warn("Error al cargar localStorage", e); }
         }
 
         function loadDataIntoSystem(data, append = false) {
@@ -705,6 +837,13 @@
 
                 document.getElementById('dateStart').value = formatDate(min);
                 document.getElementById('dateEnd').value = formatDate(max);
+            }
+
+            // Realizar backup automático en Web Storage
+            try {
+                localStorage.setItem('aduanasDataBackup', JSON.stringify(rawData));
+            } catch (e) {
+                console.warn("Storage Backup Error:", e);
             }
 
             applyFilters();
@@ -842,31 +981,7 @@
                                     FACTURA: row[findKey('FACTURA')] || row[findKey('NRO F')] || '',
                                     CERTIFICADO: row[findKey('CERTIFICADO')] || row[findKey('ORIGEN')] || '',
                                     COMEX: row[findKey('COMEX')] || '',
-                                    ANTIDROGA_INFO: (function () {
-                                        const rawVal = String(row[findKey('ANTIDROGA')] || row[findKey('DROGA')] || row[findKey('ANTID')] || '').toUpperCase().trim();
-                                        let revisados = 0;
-                                        let total = 1;
-
-                                        if (!rawVal || rawVal === 'NO' || rawVal === 'N/A' || rawVal === '0' || rawVal === 'FALSE') {
-                                            revisados = 0;
-                                            total = 1;
-                                        } else if (rawVal.includes('/')) {
-                                            const parts = rawVal.split('/');
-                                            revisados = parseInt(parts[0]) || 0;
-                                            total = parseInt(parts[1]) || revisados || 1;
-                                        } else if (rawVal === 'SI' || rawVal === 'X' || rawVal === 'S') {
-                                            revisados = 1;
-                                            total = 1;
-                                        } else if (!isNaN(rawVal)) {
-                                            revisados = parseInt(rawVal);
-                                            total = revisados; // Asumir que se revisaron todos los indicados
-                                        } else {
-                                            revisados = 1; // Un nombre o texto se cuenta como 1 revisión
-                                            total = 1;
-                                        }
-
-                                        return { revisados, total, text: rawVal };
-                                    })(),
+                                    ANTIDROGA_INFO: parseAntidroga(row[findKey('ANTIDROGA')] || row[findKey('DROGA')] || row[findKey('ANTID')] || ''),
                                     OPERACION_ADICIONAL: row[findKey('OPERACION ADICIONAL')] || row[findKey('OP ADIC')] || '',
                                     GANDOLA: row[findKey('GANDOLA')] || '',
                                     CONDUCTOR: row[findKey('CONDUCTOR')] || row[findKey('CONDUCT')] || row[findKey('CHOFER')] || '',
@@ -978,6 +1093,9 @@
         function clearData() {
             rawData = [];
             filteredData = [];
+
+            try { localStorage.removeItem('aduanasDataBackup'); } catch (e) { }
+
             // Volver a la pantalla de bienvenida
             document.getElementById('welcomeView').classList.remove('hidden');
             setTimeout(() => {
@@ -1016,21 +1134,45 @@
         function addManualRecord(e) {
             e.preventDefault();
 
-            const fechaInput = document.getElementById('m_fecha').value;
-            const [y, m, d] = fechaInput.split('-');
+            const val = (id) => (document.getElementById(id) && document.getElementById(id).value.toUpperCase()) || '';
+            const formatDateEsp = (dateStr) => {
+                if (!dateStr) return '';
+                const [y, m, d] = dateStr.split('-');
+                return `${d}/${m}/${y}`;
+            };
+
+            let mesStr = '';
+            if (val('m_fecha')) {
+                const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+                const dObj = new Date(val('m_fecha') + 'T00:00:00');
+                if (!isNaN(dObj)) mesStr = meses[dObj.getMonth()] || '';
+            }
+
+            const isChecked = document.getElementById('m_antidroga').checked;
 
             const newRecord = {
-                CLIENTE: document.getElementById('m_cliente').value
-                    .toUpperCase()
-                    .replace(/[\.,]/g, '')
-                    .replace(/\s+/g, ' ')
-                    .trim(),
-                FECHA: `${d}/${m}/${y}`,
-                REFERENCIA: document.getElementById('m_referencia').value.toUpperCase() || '',
-                CONTROL: document.getElementById('m_control').value.toUpperCase() || '',
-                CHOFER: document.getElementById('m_chofer').value.toUpperCase() || '',
-                ANTIDROGA_INFO: { revisados: document.getElementById('m_antidroga').checked ? 1 : 0, total: 1, text: document.getElementById('m_antidroga').checked ? 'SI' : 'NO' },
-                ADUANA: 'TIENDITAS (MANUAL)'
+                MES: mesStr,
+                CLIENTE: val('m_cliente').replace(/[\.,]/g, '').replace(/\s+/g, ' ').trim(),
+                RIF: val('m_rif'),
+                DUA: val('m_dua'),
+                ADUANA: val('m_aduana') || 'MANUAL',
+                MERCANCIA: val('m_mercancia'),
+                FECHA_LLEGADA: formatDateEsp(val('m_fecha')),
+                FECHA_SALIDA: formatDateEsp(val('m_fecha_salida')),
+                FECHA: formatDateEsp(val('m_fecha')),
+                CARTA_PORTE: val('m_carta_porte'),
+                MANIFIESTO: val('m_manifiesto'),
+                FACTURA: val('m_factura'),
+                CERTIFICADO: val('m_certificado'),
+                COMEX: val('m_comex'),
+                ANTIDROGA_INFO: { revisados: isChecked ? 1 : 0, total: 1, text: isChecked ? 'SI' : 'NO' },
+                OPERACION_ADICIONAL: val('m_operacion_adicional'),
+                GANDOLA: val('m_gandola'),
+                CONDUCTOR: val('m_chofer'),
+                CHOFER: val('m_chofer'),
+                PLACA: val('m_placa'),
+                GASTOS: val('m_gastos'),
+                REFERENCIA: val('m_referencia')
             };
 
             loadDataIntoSystem([newRecord], true);
@@ -1284,21 +1426,36 @@
         function exportToCSV() {
             if (filteredData.length === 0) return showToast("⚠️ No hay datos para exportar");
 
-            // Mapeo limpio
+            // Mapeo completo basado en las columnas de Excel
             const cleanData = filteredData.map(d => ({
-                CLIENTE: d.CLIENTE,
-                FECHA: d.FECHA,
-                REFERENCIA: d.REFERENCIA,
-                NO_C: d.CONTROL,
-                CHOFER: d.CHOFER,
-                ESTATUS: d.ANTIDROGA,
-                FUENTE: d._sourceFile || ''
+                'MES': d.MES || '',
+                'CLIENTE': d.CLIENTE || '',
+                'RIF': d.RIF || '',
+                'DUA': d.DUA || '',
+                'ADUANA': d.ADUANA || '',
+                'MERCANCIA': d.MERCANCIA || '',
+                'FECHA DE LLEGADA': d.FECHA_LLEGADA || d.FECHA || '',
+                'FECHA DE SALIDA': d.FECHA_SALIDA || '',
+                'CARTA DE PORTE': d.CARTA_PORTE || '',
+                'MANIFIESTO INTERNACIONAL': d.MANIFIESTO || '',
+                'NUMERO DE FACTURA': d.FACTURA || '',
+                'CERTIFICADO DE ORIGEN': d.CERTIFICADO || '',
+                'COMEX': d.COMEX || '',
+                'ANTIDROGA': d.ANTIDROGA_INFO?.text || '',
+                'OPERACION ADICIONAL': d.OPERACION_ADICIONAL || '',
+                'GANDOLA': d.GANDOLA || '',
+                'CONDUCTOR': d.CONDUCTOR || d.CHOFER || '',
+                'PLACA': d.PLACA || '',
+                'GASTOS ADICIONALES': d.GASTOS || '',
+                'REFERENCIA': d.REFERENCIA || ''
             }));
 
             const ws = XLSX.utils.json_to_sheet(cleanData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Reporte_Aduana");
-            XLSX.writeFile(wb, "Reporte_Auditoria_Aduana.csv");
+            // Guardar ahora en extension .xlsx explícitamente y con el método correcto
+            XLSX.writeFile(wb, "Reporte_Aduanas_Actualizado.xlsx");
+            showToast("✅ Archivo Excel exportado con éxito");
         }
 
         // Toast Helper
