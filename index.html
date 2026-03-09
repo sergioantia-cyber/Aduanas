@@ -901,11 +901,20 @@
                         </svg>
                         <span class="text-slate-300 text-xs font-mono truncate" title="${fileName}">${fileName}</span>
                     </div>
-                    <button onclick="confirmAction('REPLACE_SPECIFIC', '${fileName}')" 
-                        class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 px-3 py-1.5 rounded transition-all flex items-center gap-1 border border-slate-700 hover:border-red-500/30 shadow-sm"
-                        title="Reemplazar solo este archivo con el nuevo">
-                        <span class="font-bold text-red-500">♻️</span> Reemplazar
-                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="confirmAction('DELETE_SPECIFIC', '${fileName}')" 
+                            class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-500 p-1.5 rounded transition-all border border-slate-700 hover:border-red-500/30"
+                            title="Eliminar esta importación">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                        <button onclick="confirmAction('REPLACE_SPECIFIC', '${fileName}')" 
+                            class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-blue-400 px-3 py-1.5 rounded transition-all flex items-center gap-1 border border-slate-700 hover:border-blue-500/30"
+                            title="Reemplazar solo este archivo con el nuevo">
+                            <span class="font-bold text-blue-500">♻️</span> Reemplazar
+                        </button>
+                    </div>
                 </div>
             `).join('');
 
@@ -920,7 +929,9 @@
         }
 
         function confirmAction(action, targetFile = null) {
-            document.getElementById('uploadDecisionModal').classList.add('hidden');
+            if (action !== 'DELETE_SPECIFIC') {
+                document.getElementById('uploadDecisionModal').classList.add('hidden');
+            }
 
             if (action === 'APPEND') {
                 loadDataIntoSystem(tempUploadData, true);
@@ -931,17 +942,33 @@
                 showToast(`🗑️ Sistema reiniciado con: ${tempFileName}`);
             }
             else if (action === 'REPLACE_SPECIFIC' && targetFile) {
-                // 1. Filtrar todo MENOS el archivo target
                 const keptData = rawData.filter(d => d._sourceFile !== targetFile);
-                // 2. Establecer rawData con los datos conservados
                 rawData = keptData;
-                // 3. Agregar los nuevos (que vienen con _sourceFile = tempFileName)
                 loadDataIntoSystem(tempUploadData, true);
-
                 showToast(`🔄 Se reemplazó "${targetFile}" por "${tempFileName}"`);
             }
+            else if (action === 'DELETE_SPECIFIC' && targetFile) {
+                const keptData = rawData.filter(d => d._sourceFile !== targetFile);
+                rawData = keptData;
 
-            // Limpieza
+                // Actualizar info visible en el sistema (sin tempUploadData porque estamos borrando)
+                loadDataIntoSystem([], true); // Forzar actualización de pantalla y localStorage
+
+                showToast(`🗑️ Archivo "${targetFile}" eliminado`);
+
+                // Refrescar el modal si queda algo, sino cerrarlo
+                const remainingFiles = [...new Set(rawData.map(d => d._sourceFile))];
+                if (remainingFiles.length === 0) {
+                    document.getElementById('uploadDecisionModal').classList.add('hidden');
+                    clearData(); // Si borramos el ultimo, limpiamos todo y volvemos al inicio
+                    return;
+                } else {
+                    showUploadDecisionModal(); // Volver a renderizar modal
+                    return; // Retornamos para no limpiar las variables temp, pues el modal sigue activo para el nuevo archivo en progreso
+                }
+            }
+
+            // Limpieza (no llega aquí en DELETE_SPECIFIC)
             tempUploadData = [];
             tempFileName = "";
         }
